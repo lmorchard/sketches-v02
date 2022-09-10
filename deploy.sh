@@ -5,7 +5,7 @@ set -e
 
 # build
 npm run clean
-npm run build
+npm run build -- --base=/sketches-v02/
 
 # navigate into the build output directory
 cd dist
