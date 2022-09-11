@@ -13,7 +13,6 @@ export const BoidSpriteOptions = defineComponent({
   scaleY: Types.f32,
   lineWidth: Types.f32,
   color: Types.ui32,
-  faceVelocity: Types.i8,
 });
 
 export class BoidEntity extends BaseEntityProxy {
@@ -30,7 +29,6 @@ export class BoidEntity extends BaseEntityProxy {
       scaleY: 0.5,
       lineWidth: 2.0,
       color: 0x33ff33,
-      faceVelocity: 1,
     },
   };
 
@@ -43,8 +41,7 @@ export const boidsUpdateSystem = (options) => (world) =>
   updateEntities(world, [[boidsQuery, BoidEntity]]);
 
 export class BoidSprite {
-  constructor(world, boidEntity, options = {}) {
-    this.options = { ...this.constructor.defaultOptions, ...options };
+  constructor(world, boidEntity) {
     this.g = new Graphics();
     this.draw(world, boidEntity);
   }
@@ -69,8 +66,9 @@ export class BoidSprite {
 
   update(world, boidEntity) {
     const { g } = this;
-    const { Position, Velocity, BoidSpriteOptions } = boidEntity;
-    const { scaleX, scaleY, faceVelocity } = BoidSpriteOptions;
+    const { Position, BoidSpriteOptions } = boidEntity;
+    const { scaleX, scaleY } = BoidSpriteOptions;
+    
     g.x = Position.x;
     g.y = Position.y;
     g.rotation = Position.r;

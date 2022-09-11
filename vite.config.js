@@ -52,10 +52,17 @@ export default defineConfig({
   appType: "mpa",
   clearScreen: false,
   build: {
+    chunkSizeWarningLimit: 750,
     rollupOptions: {
       input: {
         ...sketchesInput,
         index: "index.html",
+      },
+      output: {
+        manualChunks(id) {
+          if (id.includes("node_modules/@pixi")) return "pixi";
+          if (id.includes("node_modules")) return "vendor";
+        },
       },
     },
   },

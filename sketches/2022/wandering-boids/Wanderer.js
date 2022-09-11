@@ -3,6 +3,7 @@ import { GenericComponentProxy } from "../../../lib/ecsUtils.js";
 import { Position, Velocity } from "../../../lib/positionMotion";
 import { transition } from "../../../lib/transitions.js";
 import easings from "../../../lib/easings.js";
+import { distance } from "../../../lib/utils.js";
 
 import { HeadingAndSpeed } from "./HeadingAndSpeed.js";
 
@@ -95,7 +96,3 @@ export const wandererSystem = (options) => {
     return world;
   };
 };
-
-function distance(x0, y0, x1 = 0, y1 = 0) {
-  return Math.sqrt(Math.pow(x1 - x0, 2) + Math.pow(y1 - y0, 2));
-}

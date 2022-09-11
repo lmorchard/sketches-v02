@@ -46,11 +46,11 @@ async function main() {
 
   world.run(
     pipe(
-      tweakPaneUpdateSystem({ pane /* wanderingBoid */ }),
       boidsUpdateSystem(),
       wandererSystem(),
       headingAndSpeedSystem(),
-      movementSystem()
+      movementSystem(),
+      tweakPaneUpdateSystem({ pane /* wanderingBoid */ })
     ),
     pipe(autoSizedRenderer(), boidsRenderer(), gridRenderer()),
     stats
