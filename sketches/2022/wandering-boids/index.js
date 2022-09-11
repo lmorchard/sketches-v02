@@ -4,31 +4,49 @@ import * as Stats from "../../../lib/stats.js";
 import { Pane } from "tweakpane";
 import { autoSizedRenderer, gridRenderer } from "../../../lib/viewport/pixi.js";
 import { movementSystem } from "../../../lib/positionMotion";
+import { hslToRgb } from "../../../lib/hslToRgb";
 import { BoidEntity, boidsUpdateSystem, boidsRenderer } from "./Boid.js";
 import { headingAndSpeedSystem } from "./HeadingAndSpeed.js";
 import { Wanderer, wandererSystem } from "./Wanderer.js";
 
 import "../../../index.css";
 
+const NUM_WANDERERS = 100;
+
 async function main() {
   const world = World.init();
   const stats = Stats.init();
   const pane = new Pane();
 
-  const wanderingBoid = BoidEntity.spawn(world, {
-    Position: { x: 0, y: 0, r: 0 },
-    HeadingAndSpeed: { heading: 0, speed: 200 },
-  });
-  wanderingBoid.addComponents(world, { Wanderer });
-  Object.assign(wanderingBoid.Wanderer, {
-    originX: 0,
-    originY: 0,
-    maxDistance: 500,
-  });
+  for (let idx = 0; idx < NUM_WANDERERS; idx++) {
+    const boid = BoidEntity.spawn(world, {
+      Position: {
+        x: -200 + Math.random() * 400,
+        y: -200 + Math.random() * 400,
+        r: 0,
+      },
+      HeadingAndSpeed: {
+        heading: Math.PI * 2 * Math.random(),
+        speed: 50 + 200 * Math.random(),
+      },
+      BoidSpriteOptions: {
+        scaleX: 0.25,
+        scaleY: 0.25,
+        lineWidth: 4.0,
+        color: hslToRgb(Math.random(), 1.0, 0.5),
+      },
+    });
+    boid.addComponents(world, { Wanderer });
+    Object.assign(boid.Wanderer, {
+      originX: 0,
+      originY: 0,
+      maxDistance: 500,
+    });
+  }
 
   world.run(
     pipe(
-      tweakPaneUpdateSystem({ pane, wanderingBoid }),
+      tweakPaneUpdateSystem({ pane /* wanderingBoid */ }),
       boidsUpdateSystem(),
       wandererSystem(),
       headingAndSpeedSystem(),
@@ -41,14 +59,8 @@ async function main() {
   console.log("READY.");
 }
 
-const tweakPaneUpdateSystem = ({ pane, wanderingBoid }) => {
+const tweakPaneUpdateSystem = ({ pane }) => {
   const f = pane.addFolder({ title: document.title, expanded: true });
-
-  const fWanderer = f.addFolder({ title: "Wanderer", expanded: true });
-  for (const name in wanderingBoid.Wanderer) {
-    if (["originX", "originY", "maxDistance"].includes(name)) continue;
-    fWanderer.addMonitor(wanderingBoid.Wanderer, name);
-  }
 
   return (world) => {
     pane.refresh();

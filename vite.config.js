@@ -21,13 +21,13 @@ const fetchSketchMetadata = (filepath) => {
   const indexSrc = fs.readFileSync(filepath);
   const $ = cheerio.load(indexSrc);
 
-  const href = filepath; // path.dirname(path.relative(path.dirname(filePath), sketchPath)) + "/";
+  const href = filepath.replace("/index.html", ""); // path.dirname(path.relative(path.dirname(filePath), sketchPath)) + "/";
   const title = metaContent($, "og:title", $("head title").text());
   const date = new Date(
     metaContent($, "og:article:modified_time", indexStat.mtimeMs)
   );
   const metaImage = metaContent($, "og:image");
-  const image = metaImage ? `${href}${metaImage}` : `.${DEFAULT_THUMBNAIL}`;
+  const image = metaImage ? `${href}/${metaImage}` : `.${DEFAULT_THUMBNAIL}`;
   const description = metaContent($, "og:description");
 
   return { href, title, image, date, description };

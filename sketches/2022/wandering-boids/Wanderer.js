@@ -83,7 +83,7 @@ export const wandererSystem = (options) => {
         if (wanderer.idleDelay <= 0) {
           Object.assign(wanderer, {
             turnActive: true,
-            turnDuration: 0.25 + Math.random() * 2.75,
+            turnDuration: 0.5 + Math.random() * 2.0,
             turnElapsed: 0,
             turnStart: heading,
             turnEnd: Math.PI * 2 * Math.random(),

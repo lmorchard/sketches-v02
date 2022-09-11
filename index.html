@@ -9,8 +9,12 @@
     <ul>
       <% for (const {filename, metadata: { href, title, image, description, date }} of sketches) { %>
         <li>
-          <%= date.toISOString() %>:
-          <a href="<%= href %>"><%= title %></a> - <%= description %>
+          <p>
+            <%= date.toISOString() %>:
+            <a href="<%= href %>/index.html"><%= title %></a>  
+          </p>
+          <p><%= description %></p>
+          <img src="<%= image %>" width="200" />
         </li>
       <% } %>
     </ul>
