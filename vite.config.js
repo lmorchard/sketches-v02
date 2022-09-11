@@ -59,10 +59,12 @@ export default defineConfig({
         index: "index.html",
       },
       output: {
+        /*
         manualChunks(id) {
           if (id.includes("node_modules/@pixi")) return "pixi";
           if (id.includes("node_modules")) return "vendor";
         },
+        */
       },
     },
   },
