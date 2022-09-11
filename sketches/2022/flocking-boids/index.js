@@ -8,6 +8,7 @@ import { hslToRgb } from "../../../lib/hslToRgb";
 import { BoidEntity, boidsRenderer } from "./Boid.js";
 import { SeekSpeed, seekSpeedSystem } from "./SeekSpeed.js";
 import { FlockingBoid, flockingBoidsSystem } from "./FlockingBoid.js";
+import { Expiration, expirationSystem } from "./Expiration";
 
 import "../../../index.css";
 
@@ -19,42 +20,7 @@ async function main() {
   const pane = new Pane();
 
   for (let idx = 0; idx < NUM_WANDERERS; idx++) {
-    const boid = BoidEntity.spawn(world, {
-      Position: {
-        x: -200 + Math.random() * 400,
-        y: -200 + Math.random() * 400,
-        r: 0,
-      },
-      Velocity: {
-        x: -200 + Math.random() * 400,
-        y: -200 + Math.random() * 400,
-        r: 0,
-      },
-      BoidSpriteOptions: {
-        scaleX: 0.125,
-        scaleY: 0.125,
-        lineWidth: 8.0,
-        color: hslToRgb(Math.random(), 1.0, 0.5),
-      },
-    });
-    boid.addComponents(world, { SeekSpeed, FlockingBoid });
-    Object.assign(boid.SeekSpeed, {
-      acceleration: 1.0,
-      targetSpeed: 400,
-    });
-    Object.assign(boid.FlockingBoid, {
-      flockGroup: 1,
-      visualRange: 75,
-      visualEntityLimit: 7,
-      centeringFactor: 0.005,
-      avoidFactor: 0.05,
-      avoidMinDistance: 15,
-      matchingFactor: 0.05,
-      originX: 0,
-      originY: 0,
-      originTurnFactor: 12.0,
-      maxOriginDistance: 400,
-    });
+    spawnBoid(world);
   }
 
   world.run(
@@ -62,6 +28,9 @@ async function main() {
       flockingBoidsSystem(),
       seekSpeedSystem(),
       movementSystem(),
+      expirationSystem({
+        onRemove: () => spawnBoid(world),
+      }),
       tweakPaneUpdateSystem({ pane /* wanderingBoid */ })
     ),
     pipe(autoSizedRenderer(), boidsRenderer(), gridRenderer()),
@@ -71,6 +40,46 @@ async function main() {
   console.log("READY.");
 }
 
+const spawnBoid = (world) => {
+  const boid = BoidEntity.spawn(world, {
+    Position: {
+      x: 0,
+      y: 0,
+      r: 0,
+    },
+    Velocity: {
+      x: -300 + Math.random() * 600,
+      y: -300 + Math.random() * 600,
+      r: 0,
+    },
+    BoidSpriteOptions: {
+      scaleX: 0.125,
+      scaleY: 0.125,
+      lineWidth: 8.0,
+      color: hslToRgb(Math.random(), 1.0, 0.5),
+    },
+  });
+  boid.addComponents(world, { Expiration, SeekSpeed, FlockingBoid });
+  boid.Expiration.timeToLive = Math.random() * 20.0;
+  Object.assign(boid.SeekSpeed, {
+    acceleration: 1.0,
+    targetSpeed: 500,
+  });
+  Object.assign(boid.FlockingBoid, {
+    flockGroup: 1,
+    visualRange: 75,
+    visualEntityLimit: 7,
+    centeringFactor: 0.005,
+    avoidFactor: 0.05,
+    avoidMinDistance: 15,
+    matchingFactor: 0.05,
+    originX: 0,
+    originY: 0,
+    originTurnFactor: 10.0,
+    maxOriginDistance: 350,
+  });
+};
+
 const tweakPaneUpdateSystem = ({ pane }) => {
   const f = pane.addFolder({ title: document.title, expanded: true });
 
@@ -79,6 +88,5 @@ const tweakPaneUpdateSystem = ({ pane }) => {
     return world;
   };
 };
-
 
 main().catch(console.error);

@@ -112,7 +112,9 @@ export const flockingBoidsSystem = (options) => {
 
     if (distanceSq(x, y, originX, originY) < Math.pow(maxOriginDistance, 2)) return;
 
+    const heading = Math.atan2(velocity.y, velocity.x);
     const originHeading = Math.atan2(originY - y, originX - x);
+
     velocity.x += originTurnFactor * Math.cos(originHeading);
     velocity.y += originTurnFactor * Math.sin(originHeading);
   };
