@@ -13,6 +13,9 @@ export const Wanderer = defineComponent({
   turnEnd: Types.f32,
   turnDuration: Types.f32,
   turnElapsed: Types.f32,
+  originX: Types.f32,
+  originY: Types.f32,
+  maxDistance: Types.f32,
 });
 
 export const wandererQuery = defineQuery([
@@ -36,13 +39,16 @@ export const wandererSystem = (options) => {
       headingAndSpeed.eid = eid;
 
       const { x, y } = position;
+      const { originX, originY, maxDistance } = wanderer;
       const { heading } = headingAndSpeed;
 
       // Execute the current turn, if it's active
       if (wanderer.turnActive) {
         wanderer.turnElapsed += deltaSec;
         if (wanderer.turnElapsed >= wanderer.turnDuration) {
+          // Turn complete, schedule a new idle delay
           wanderer.turnActive = false;
+          wanderer.idleDelay = Math.random() * 2;
         }
         const { turnStart, turnEnd, turnDuration, turnElapsed } = wanderer;
         headingAndSpeed.heading = transition(
@@ -56,7 +62,7 @@ export const wandererSystem = (options) => {
       }
 
       // If we're out of bounds, turn back toward origin
-      if (x < -400 || x > 400 || y < -400 || y > 400) {
+      if (distance(x, y, originX, originY) > maxDistance) {
         const originHeading = Math.atan2(0 - y, 0 - x);
         if (Math.abs(originHeading - heading) > Math.PI / 4) {
           Object.assign(wanderer, {
@@ -72,13 +78,12 @@ export const wandererSystem = (options) => {
       }
 
       if (!wanderer.turnActive) {
-        // Otherwise, wait through idle delay and then kick off a new turn and following idle delay
+        // Otherwise, wait through idle delay and then kick off a new turn
         wanderer.idleDelay -= deltaSec;
         if (wanderer.idleDelay <= 0) {
           Object.assign(wanderer, {
-            idleDelay: Math.random() * 2,
             turnActive: true,
-            turnDuration: Math.random() * 3,
+            turnDuration: 0.25 + Math.random() * 2.75,
             turnElapsed: 0,
             turnStart: heading,
             turnEnd: Math.PI * 2 * Math.random(),
@@ -90,3 +95,7 @@ export const wandererSystem = (options) => {
     return world;
   };
 };
+
+function distance(x0, y0, x1 = 0, y1 = 0) {
+  return Math.sqrt(Math.pow(x1 - x0, 2) + Math.pow(y1 - y0, 2));
+}

@@ -37,6 +37,11 @@ export class BoidEntity extends BaseEntityProxy {
   update(world) {}
 }
 
+export const boidsQuery = defineQuery([Position, Velocity]);
+
+export const boidsUpdateSystem = (options) => (world) =>
+  updateEntities(world, [[boidsQuery, BoidEntity]]);
+
 export class BoidSprite {
   constructor(world, boidEntity, options = {}) {
     this.options = { ...this.constructor.defaultOptions, ...options };
@@ -74,19 +79,12 @@ export class BoidSprite {
   }
 }
 
-export const boidsQuery = defineQuery([Position, Velocity]);
-
-export const boidsUpdateSystem = (options) => (world) => {
-  return updateEntities(world, [[boidsQuery, BoidEntity]]);
-};
-
 export const boidsRenderer = (options) => {
   const init = (world) => {
     const { stage } = world;
     world.gBoids = new Graphics();
     stage.addChild(world.gBoids);
   };
-  
   return (world) => {
     if (!world.gBoids) {
       init(world);
