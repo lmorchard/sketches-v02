@@ -1,5 +1,7 @@
 import { defineQuery, defineComponent, Types, removeEntity } from "bitecs";
 
+export const Tombstone = defineComponent();
+
 export const Expiration = defineComponent({
   timeToLive: Types.f32,
 });

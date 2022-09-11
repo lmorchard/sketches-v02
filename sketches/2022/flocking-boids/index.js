@@ -1,18 +1,19 @@
-import { pipe } from "bitecs";
+import { pipe, defineComponent, hasComponent } from "bitecs";
 import * as World from "../../../lib/world.js";
 import * as Stats from "../../../lib/stats.js";
 import { Pane } from "tweakpane";
 import { autoSizedRenderer, gridRenderer } from "../../../lib/viewport/pixi.js";
 import { movementSystem } from "../../../lib/positionMotion";
 import { hslToRgb } from "../../../lib/hslToRgb";
-import { BoidEntity, boidsRenderer } from "./Boid.js";
+import { BoidEntity, BoidSpriteOptions, boidsRenderer } from "./Boid.js";
 import { SeekSpeed, seekSpeedSystem } from "./SeekSpeed.js";
 import { FlockingBoid, flockingBoidsSystem } from "./FlockingBoid.js";
-import { Expiration, expirationSystem } from "./Expiration";
+import { Expiration, expirationSystem, Tombstone } from "./Expiration";
+import { Position, Velocity } from "../../../lib/positionMotion";
 
 import "../../../index.css";
 
-const NUM_WANDERERS = 100;
+const NUM_WANDERERS = 150;
 
 async function main() {
   const world = World.init();
@@ -29,7 +30,11 @@ async function main() {
       seekSpeedSystem(),
       movementSystem(),
       expirationSystem({
-        onRemove: () => spawnBoid(world),
+        onRemove: (eid) => {
+          if (hasComponent(world, Tombstone, eid)) return;
+          spawnTombstoneForBoid(world, eid);
+          spawnBoid(world);
+        },
       }),
       tweakPaneUpdateSystem({ pane /* wanderingBoid */ })
     ),
@@ -57,6 +62,7 @@ const spawnBoid = (world) => {
       scaleY: 0.125,
       lineWidth: 8.0,
       color: hslToRgb(Math.random(), 1.0, 0.5),
+      faceHeading: 1,
     },
   });
   boid.addComponents(world, { Expiration, SeekSpeed, FlockingBoid });
@@ -80,9 +86,32 @@ const spawnBoid = (world) => {
   });
 };
 
+const spawnTombstoneForBoid = (world, eid) => {
+  const boid = BoidEntity.spawn(world, {
+    Position: {
+      x: Position.x[eid],
+      y: Position.y[eid],
+      r: 0,
+    },
+    Velocity: {
+      x: Velocity.x[eid],
+      y: Velocity.y[eid],
+      r: Math.PI * 10,
+    },
+    BoidSpriteOptions: {
+      scaleX: 0.125,
+      scaleY: 0.125,
+      lineWidth: 8.0,
+      faceHeading: 0,
+      color: BoidSpriteOptions.color[eid],
+    },
+  });
+  boid.addComponents(world, { Expiration, Tombstone });
+  boid.Expiration.timeToLive = 0.5;
+};
+
 const tweakPaneUpdateSystem = ({ pane }) => {
   const f = pane.addFolder({ title: document.title, expanded: true });
-
   return (world) => {
     pane.refresh();
     return world;

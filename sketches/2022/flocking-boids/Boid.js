@@ -12,6 +12,7 @@ export const BoidSpriteOptions = defineComponent({
   scaleY: Types.f32,
   lineWidth: Types.f32,
   color: Types.ui32,
+  faceHeading: Types.ui8,
 });
 
 export class BoidEntity extends BaseEntityProxy {
@@ -65,11 +66,11 @@ export class BoidSprite {
   update(world, boidEntity) {
     const { g } = this;
     const { Position, Velocity, BoidSpriteOptions } = boidEntity;
-    const { scaleX, scaleY } = BoidSpriteOptions;
+    const { scaleX, scaleY, faceHeading } = BoidSpriteOptions;
 
     g.x = Position.x;
     g.y = Position.y;
-    g.rotation = Math.atan2(Velocity.y, Velocity.x);
+    g.rotation = faceHeading ? Math.atan2(Velocity.y, Velocity.x) : Position.r;
     g.scale.x = scaleX;
     g.scale.y = scaleY;
   }
