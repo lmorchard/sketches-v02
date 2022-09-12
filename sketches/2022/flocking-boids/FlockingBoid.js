@@ -1,8 +1,8 @@
-
 import { Position, Velocity } from "../../../lib/positionMotion";
 import { defineQuery, defineComponent, Types } from "bitecs";
 import { GenericComponentProxy, setEid } from "../../../lib/ecsUtils.js";
 import { distanceSq } from "../../../lib/utils.js";
+import * as Quadtree from "@timohausmann/quadtree-ts";
 
 export const FlockingBoid = defineComponent({
   flockGroup: Types.ui32,
@@ -12,10 +12,6 @@ export const FlockingBoid = defineComponent({
   avoidFactor: Types.f32,
   avoidMinDistance: Types.f32,
   matchingFactor: Types.f32,
-  originX: Types.f32,
-  originY: Types.f32,
-  originTurnFactor: Types.f32,
-  maxOriginDistance: Types.f32,
 });
 
 export const flockingBoidsQuery = defineQuery([
@@ -33,6 +29,46 @@ export const flockingBoidsSystem = (options) => {
   const otherPosition = new GenericComponentProxy(Position);
   const otherVelocity = new GenericComponentProxy(Velocity);
 
+  let boidsQuadTree;
+  const updateBoidsQuadTree = (world) => {
+    let xMin = null;
+    let xMax = null;
+    let yMin = null;
+    let yMax = null;
+    const points = [];
+    for (const eid of flockingBoidsQuery(world)) {
+      const x = Position.x[eid];
+      const y = Position.y[eid];
+      if (xMin === null || x < xMin) xMin = x;
+      if (xMax === null || x > xMax) xMax = x;
+      if (yMin === null || y < yMin) yMin = y;
+      if (yMax === null || y > yMax) yMax = y;
+
+      points.push([x, y, eid]);
+    }
+    boidsQuadTree = new Quadtree.Quadtree({
+      width: xMax - xMin,
+      height: yMax - yMin,
+      x: xMin,
+      y: yMin,
+      maxObjects: 10,
+      maxLevels: 4,
+    });
+    points.forEach(([x, y, eid]) => {
+      boidsQuadTree.insert(
+        new Quadtree.Rectangle({
+          x,
+          y,
+          width: 1,
+          height: 1,
+          data: eid,
+        })
+      );
+    });
+
+    return boidsQuadTree;
+  };
+
   // TODO: this is brute force and naive, a quadtree would be nice
   const findNearbyBoids = (
     world,
@@ -41,22 +77,37 @@ export const flockingBoidsSystem = (options) => {
     flockGroup,
     limit = 7
   ) => {
-    const visualRangeSq = Math.pow(visualRange, 2);
-    return flockingBoidsQuery(world)
-      .filter((eid) => flockGroup === FlockingBoid.flockGroup[eid])
-      .map((eid) => [
-        eid,
-        distanceSq(
-          Position.x[subjectEid],
-          Position.y[subjectEid],
-          Position.x[eid],
-          Position.y[eid]
-        ),
-      ])
-      .filter(([otherEid, otherDistanceSq]) => otherDistanceSq < visualRangeSq)
-      .sort(([aEid, aDistanceSq], [bEid, bDistanceSq]) => aDistanceSq - bDistanceSq)
-      .slice(0, limit)
-      .map(([otherEid]) => otherEid);
+    return (
+      boidsQuadTree
+        // Query the quadtree with other boids roughly within range
+        .retrieve(
+          new Quadtree.Rectangle({
+            x: Position.x[subjectEid] - visualRange / 2,
+            y: Position.y[subjectEid] - visualRange / 2,
+            width: visualRange,
+            height: visualRange,
+          })
+        )
+        // Filter for the current flock group
+        .filter(({ data: eid }) => flockGroup === FlockingBoid.flockGroup[eid])
+        // Find distance to all the other boids
+        .map(({ data: eid }) => [
+          eid,
+          distanceSq(
+            Position.x[subjectEid],
+            Position.y[subjectEid],
+            Position.x[eid],
+            Position.y[eid]
+          ),
+        ])
+        // Sort by distance
+        .sort(
+          ([aEid, aDistanceSq], [bEid, bDistanceSq]) =>
+            aDistanceSq - bDistanceSq
+        )
+        .map(([otherEid]) => otherEid)
+        .slice(0, limit)
+    );
   };
 
   const applyCoherence = (nearbyEids, centeringFactor) => {
@@ -105,21 +156,9 @@ export const flockingBoidsSystem = (options) => {
     velocity.y += (dy - velocity.y) * matchingFactor;
   };
 
-  const applyTurnFromBounds = () => {
-    const { x, y } = position;
-    const { originTurnFactor, originX, originY, maxOriginDistance } =
-      flockingBoid;
-
-    if (distanceSq(x, y, originX, originY) < Math.pow(maxOriginDistance, 2)) return;
-
-    const heading = Math.atan2(velocity.y, velocity.x);
-    const originHeading = Math.atan2(originY - y, originX - x);
-
-    velocity.x += originTurnFactor * Math.cos(originHeading);
-    velocity.y += originTurnFactor * Math.sin(originHeading);
-  };
-
   return (world) => {
+    updateBoidsQuadTree(world);
+
     for (const eid of flockingBoidsQuery(world)) {
       setEid(eid, flockingBoid, position, velocity);
 
@@ -145,7 +184,6 @@ export const flockingBoidsSystem = (options) => {
       applyCoherence(nearbyEids, centeringFactor);
       applySeparation(nearbyEids, avoidFactor, avoidMinDistance);
       applyAlignment(nearbyEids, matchingFactor);
-      applyTurnFromBounds();
     }
     return world;
   };
