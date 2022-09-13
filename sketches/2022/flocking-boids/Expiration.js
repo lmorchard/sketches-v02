@@ -8,13 +8,13 @@ export const Expiration = defineComponent({
 
 export const expirationQuery = defineQuery([Expiration]);
 
-export const expirationSystem = (options = { onRemove: eid => {} }) => {
+export const expirationSystem = (onRemove = (eid) => {}) => {
   return (world) => {
-    const { deltaSec } = world.time;  
+    const { deltaSec } = world.time;
     for (const eid of expirationQuery(world)) {
       Expiration.timeToLive[eid] -= deltaSec;
       if (Expiration.timeToLive[eid] <= 0) {
-        options.onRemove(eid);
+        onRemove(eid);
         removeEntity(world, eid);
       }
     }

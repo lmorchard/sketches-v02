@@ -1,10 +1,7 @@
 import { defineQuery, defineComponent, Types } from "bitecs";
 import { SmoothGraphics as Graphics } from "@pixi/graphics-smooth";
-import {
-  updateEntities,
-  updateSprites,
-  BaseEntityProxy,
-} from "../../../lib/ecsUtils.js";
+import { updateEntities, BaseEntityProxy } from "../../../lib/ecsUtils.js";
+import { updateSprites } from "../../../lib/sprites.js";
 import { Position, Velocity } from "../../../lib/positionMotion";
 import { HeadingAndSpeed } from "./HeadingAndSpeed.js";
 
@@ -68,7 +65,7 @@ export class BoidSprite {
     const { g } = this;
     const { Position, BoidSpriteOptions } = boidEntity;
     const { scaleX, scaleY } = BoidSpriteOptions;
-    
+
     g.x = Position.x;
     g.y = Position.y;
     g.rotation = Position.r;

@@ -1,51 +1,123 @@
 import { pipe, hasComponent } from "bitecs";
+import { Pane } from "tweakpane";
 import * as World from "../../../lib/world.js";
 import * as Stats from "../../../lib/stats.js";
-import { Pane } from "tweakpane";
 import { autoSizedRenderer, gridRenderer } from "../../../lib/viewport/pixi.js";
 import { movementSystem } from "../../../lib/positionMotion";
 import { hslToRgb } from "../../../lib/hslToRgb";
-import { BoidEntity, BoidSpriteOptions, boidsRenderer } from "./Boid.js";
+import { Position, Velocity } from "../../../lib/positionMotion";
+import { spritesRenderer } from "../../../lib/sprites.js";
 import { SeekSpeed, seekSpeedSystem } from "./SeekSpeed.js";
 import { FlockingBoid, flockingBoidsSystem } from "./FlockingBoid.js";
 import { Expiration, expirationSystem, Tombstone } from "./Expiration";
-import { Position, Velocity } from "../../../lib/positionMotion";
 import { screenBoundsSystem } from "./ScreenBounds.js";
+import { spawnerSystem } from "./Spawner.js";
+import { BoidEntity, BoidSprite, boidsQuery } from "./Boid.js";
+import {
+  ExplosionEntity,
+  ExplosionSprite,
+  explosionsQuery,
+  explosionsUpdateSystem,
+} from "./Explosion.js";
 
 import "../../../index.css";
 
-const NUM_WANDERERS = 200;
+const MAX_BOIDS = 200;
 
 async function main() {
   const world = World.init();
   const stats = Stats.init();
   const pane = new Pane();
+  const paneFolder = pane.addFolder({ title: document.title, expanded: true });
+
+  const spawnerOptions = {
+    entityQuery: boidsQuery,
+    spawnEntity: spawnBoid,
+    maxEntities: MAX_BOIDS,
+    maxPerFrame: 20,
+    spawnDelay: 0.25,
+  };
+  paneFolder.addInput(spawnerOptions, "maxEntities", { min: 10, max: 1000 });
+
+  const flockingBoidsOptions = {
+    visualRange: 30,
+    visualEntityLimit: 7,
+    centeringFactor: 0.005,
+    avoidFactor: 0.05,
+    avoidMinDistance: 20,
+    matchingFactor: 0.05,
+  };
+  paneFolder.addInput(flockingBoidsOptions, "visualRange", {
+    min: 5,
+    max: 200,
+    step: 1,
+  });
+  paneFolder.addInput(flockingBoidsOptions, "visualEntityLimit", {
+    min: 3,
+    max: 12,
+    step: 1,
+  });
+  paneFolder.addInput(flockingBoidsOptions, "centeringFactor", {
+    min: 0.001,
+    max: 1.0,
+    step: 0.001,
+  });
+  paneFolder.addInput(flockingBoidsOptions, "avoidFactor", {
+    min: 0.01,
+    max: 1.0,
+    step: 0.01,
+  });
+  paneFolder.addInput(flockingBoidsOptions, "avoidMinDistance", {
+    min: 5,
+    max: 100,
+    step: 1,
+  });
+  paneFolder.addInput(flockingBoidsOptions, "matchingFactor", {
+    min: 0.01,
+    max: 1.0,
+    step: 0.01,
+  });
 
   world.run(
     pipe(
-      flockingBoidsSystem(),
+      spawnerSystem(spawnerOptions),
+      flockingBoidsSystem(flockingBoidsOptions),
+      explosionsUpdateSystem(),
       seekSpeedSystem(),
       screenBoundsSystem(),
       movementSystem(),
-      expirationSystem({
-        onRemove: (eid) => {
-          if (hasComponent(world, Tombstone, eid)) return;
-          spawnTombstoneForBoid(world, eid);
-          spawnBoid(world);
-        },
+      expirationSystem((eid) => {
+        if (hasComponent(world, Tombstone, eid)) return;
+        spawnTombstoneForBoid(world, eid);
       }),
-      tweakPaneUpdateSystem({ pane })
+      tweakPaneUpdateSystem(pane, paneFolder)
     ),
-    pipe(autoSizedRenderer(), boidsRenderer(), gridRenderer()),
+    pipe(
+      autoSizedRenderer(),
+      spritesRenderer([
+        [boidsQuery, BoidEntity, BoidSprite, "boidSprites"],
+        [explosionsQuery, ExplosionEntity, ExplosionSprite, "explosionSprites"],
+      ]),
+      gridRenderer()
+    ),
     stats
   );
 
-  for (let idx = 0; idx < NUM_WANDERERS; idx++) {
-    spawnBoid(world);
-  }
-
   console.log("READY.");
 }
+
+const tweakPaneUpdateSystem = (pane, rootFolder) => {
+  const watch = {
+    boidsCount: 0,
+  };
+  Object.keys(watch).forEach((name) => rootFolder.addMonitor(watch, name));
+
+  return (world) => {
+    watch.boidsCount = boidsQuery(world).length;
+    pane.refresh();
+    return world;
+  };
+};
 
 const spawnBoid = (world) => {
   const angle = Math.PI * 2 * Math.random();
@@ -75,45 +147,30 @@ const spawnBoid = (world) => {
   });
   Object.assign(boid.FlockingBoid, {
     flockGroup: 1,
-    visualRange: 25,
-    visualEntityLimit: 7,
-    centeringFactor: 0.005,
-    avoidFactor: 0.05,
-    avoidMinDistance: 20,
-    matchingFactor: 0.05,
   });
 };
 
 const spawnTombstoneForBoid = (world, eid) => {
-  const boid = BoidEntity.spawn(world, {
+  const tombstone = ExplosionEntity.spawn(world, {
     Position: {
       x: Position.x[eid],
       y: Position.y[eid],
       r: 0,
     },
     Velocity: {
-      x: Velocity.x[eid],
-      y: Velocity.y[eid],
-      r: Math.PI * 10,
+      x: Velocity.x[eid] / 3,
+      y: Velocity.y[eid] / 3,
+      r: 0, // Math.PI * 10,
     },
-    BoidSpriteOptions: {
-      scaleX: 0.125,
-      scaleY: 0.125,
-      lineWidth: 8.0,
-      faceHeading: 0,
-      color: BoidSpriteOptions.color[eid],
+    SpriteOptions: {
+      scaleX: 0.5,
+      scaleY: 0.5,
+      lineWidth: 2.0,
+      //color: BoidSpriteOptions.color[eid],
     },
   });
-  boid.addComponents(world, { Expiration, Tombstone });
-  boid.Expiration.timeToLive = 0.5;
-};
-
-const tweakPaneUpdateSystem = ({ pane }) => {
-  const f = pane.addFolder({ title: document.title, expanded: true });
-  return (world) => {
-    pane.refresh();
-    return world;
-  };
+  tombstone.addComponents(world, { Expiration, Tombstone });
+  tombstone.Expiration.timeToLive = 1.0;
 };
 
 main().catch(console.error);

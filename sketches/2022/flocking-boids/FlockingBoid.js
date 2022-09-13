@@ -6,12 +6,6 @@ import * as Quadtree from "@timohausmann/quadtree-ts";
 
 export const FlockingBoid = defineComponent({
   flockGroup: Types.ui32,
-  visualRange: Types.f32,
-  visualEntityLimit: Types.ui8,
-  centeringFactor: Types.f32,
-  avoidFactor: Types.f32,
-  avoidMinDistance: Types.f32,
-  matchingFactor: Types.f32,
 });
 
 export const flockingBoidsQuery = defineQuery([
@@ -20,7 +14,7 @@ export const flockingBoidsQuery = defineQuery([
   FlockingBoid,
 ]);
 
-export const flockingBoidsSystem = (options) => {
+export const flockingBoidsSystem = (options = {}) => {
   const flockingBoid = new GenericComponentProxy(FlockingBoid);
   const position = new GenericComponentProxy(Position);
   const velocity = new GenericComponentProxy(Velocity);
@@ -157,20 +151,21 @@ export const flockingBoidsSystem = (options) => {
   };
 
   return (world) => {
+    const {
+      visualRange,
+      visualEntityLimit,
+      centeringFactor,
+      avoidFactor,
+      avoidMinDistance,
+      matchingFactor,
+    } = options;
+
     updateBoidsQuadTree(world);
 
     for (const eid of flockingBoidsQuery(world)) {
       setEid(eid, flockingBoid, position, velocity);
 
-      const {
-        flockGroup,
-        visualRange,
-        visualEntityLimit,
-        centeringFactor,
-        avoidFactor,
-        avoidMinDistance,
-        matchingFactor,
-      } = flockingBoid;
+      const { flockGroup } = flockingBoid;
 
       const nearbyEids = findNearbyBoids(
         world,

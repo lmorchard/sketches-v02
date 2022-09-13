@@ -1,10 +1,7 @@
 import { defineQuery, defineComponent, Types } from "bitecs";
 import { SmoothGraphics as Graphics } from "@pixi/graphics-smooth";
-import {
-  updateEntities,
-  updateSprites,
-  BaseEntityProxy,
-} from "../../../lib/ecsUtils.js";
+import { updateEntities, BaseEntityProxy } from "../../../lib/ecsUtils.js";
+import { updateSprites } from "../../../lib/sprites.js";
 import { Position, Velocity } from "../../../lib/positionMotion";
 
 export const BoidSpriteOptions = defineComponent({
