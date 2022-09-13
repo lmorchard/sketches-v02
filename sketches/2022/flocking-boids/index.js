@@ -27,8 +27,6 @@ const MAX_BOIDS = 200;
 async function main() {
   const world = World.init();
   const stats = Stats.init();
-  const pane = new Pane();
-  const paneFolder = pane.addFolder({ title: document.title, expanded: true });
 
   const spawnerOptions = {
     entityQuery: boidsQuery,
@@ -37,7 +35,6 @@ async function main() {
     maxPerFrame: 20,
     spawnDelay: 0.25,
   };
-  paneFolder.addInput(spawnerOptions, "maxEntities", { min: 10, max: 1000 });
 
   const flockingBoidsOptions = {
     visualRange: 30,
@@ -47,35 +44,10 @@ async function main() {
     avoidMinDistance: 20,
     matchingFactor: 0.05,
   };
-  paneFolder.addInput(flockingBoidsOptions, "visualRange", {
-    min: 5,
-    max: 200,
-    step: 1,
-  });
-  paneFolder.addInput(flockingBoidsOptions, "visualEntityLimit", {
-    min: 3,
-    max: 12,
-    step: 1,
-  });
-  paneFolder.addInput(flockingBoidsOptions, "centeringFactor", {
-    min: 0.001,
-    max: 1.0,
-    step: 0.001,
-  });
-  paneFolder.addInput(flockingBoidsOptions, "avoidFactor", {
-    min: 0.01,
-    max: 1.0,
-    step: 0.01,
-  });
-  paneFolder.addInput(flockingBoidsOptions, "avoidMinDistance", {
-    min: 5,
-    max: 100,
-    step: 1,
-  });
-  paneFolder.addInput(flockingBoidsOptions, "matchingFactor", {
-    min: 0.01,
-    max: 1.0,
-    step: 0.01,
+
+  const { pane, rootFolder } = setupTweakPane({
+    spawnerOptions,
+    flockingBoidsOptions,
   });
 
   world.run(
@@ -90,7 +62,7 @@ async function main() {
         if (hasComponent(world, Tombstone, eid)) return;
         spawnTombstoneForBoid(world, eid);
       }),
-      tweakPaneUpdateSystem(pane, paneFolder)
+      tweakPaneUpdateSystem(pane, rootFolder)
     ),
     pipe(
       autoSizedRenderer(),
@@ -104,6 +76,46 @@ async function main() {
   );
 
   console.log("READY.");
+}
+
+function setupTweakPane({ spawnerOptions, flockingBoidsOptions }) {
+  const pane = new Pane();
+  const rootFolder = pane.addFolder({ title: document.title, expanded: true });
+
+  rootFolder.addInput(spawnerOptions, "maxEntities", { min: 10, max: 1000 });
+
+  rootFolder.addInput(flockingBoidsOptions, "visualRange", {
+    min: 5,
+    max: 200,
+    step: 1,
+  });
+  rootFolder.addInput(flockingBoidsOptions, "visualEntityLimit", {
+    min: 3,
+    max: 12,
+    step: 1,
+  });
+  rootFolder.addInput(flockingBoidsOptions, "centeringFactor", {
+    min: 0.001,
+    max: 1.0,
+    step: 0.001,
+  });
+  rootFolder.addInput(flockingBoidsOptions, "avoidFactor", {
+    min: 0.01,
+    max: 1.0,
+    step: 0.01,
+  });
+  rootFolder.addInput(flockingBoidsOptions, "avoidMinDistance", {
+    min: 5,
+    max: 100,
+    step: 1,
+  });
+  rootFolder.addInput(flockingBoidsOptions, "matchingFactor", {
+    min: 0.01,
+    max: 1.0,
+    step: 0.01,
+  });
+
+  return { pane, rootFolder };
 }
 
 const tweakPaneUpdateSystem = (pane, rootFolder) => {
