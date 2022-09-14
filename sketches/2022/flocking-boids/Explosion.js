@@ -1,10 +1,6 @@
 import { defineQuery, defineComponent, Types } from "bitecs";
 import { updateEntities, BaseEntityProxy } from "../../../lib/ecsUtils.js";
-import {
-  updateSprites,
-  SpriteOptions,
-  BaseSprite,
-} from "../../../lib/sprites.js";
+import { SpriteOptions, BaseSprite } from "../../../lib/sprites.js";
 import { Position, Velocity } from "../../../lib/positionMotion";
 import { rngIntRange } from "../../../lib/utils.js";
 import { transition } from "../../../lib/transitions.js";
@@ -142,17 +138,10 @@ export class ExplosionSprite extends BaseSprite {
   }
 }
 
-export const explosionsQuery = defineQuery([
-  Position,
-  Velocity,
-  SpriteOptions,
-  ExplosionLines,
-]);
+export const explosionsQuery = ExplosionEntity.query;
 
 export const explosionsUpdateSystem = (options) => (world) =>
-  updateEntities(world, [[explosionsQuery, ExplosionEntity]]);
+  updateEntities(world, [[ExplosionEntity]]);
 
 export const explosionsRenderer = () =>
-  spritesRenderer([
-    [explosionsQuery, ExplosionEntity, ExplosionSprite, "explosionSprites"],
-  ]);
+  spritesRenderer([ExplosionEntity, ExplosionSprite]);

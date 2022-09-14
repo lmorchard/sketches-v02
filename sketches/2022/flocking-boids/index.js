@@ -70,8 +70,8 @@ async function main() {
     pipe(
       autoSizedRenderer(),
       spritesRenderer([
-        [BoidEntity.query, BoidEntity, BoidSprite],
-        [ExplosionEntity.query, ExplosionEntity, ExplosionSprite],
+        [BoidEntity, BoidSprite],
+        [ExplosionEntity, ExplosionSprite],
       ]),
       gridRenderer()
     ),
