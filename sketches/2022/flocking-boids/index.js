@@ -7,11 +7,11 @@ import { movementSystem } from "../../../lib/positionMotion";
 import { hslToRgb } from "../../../lib/hslToRgb";
 import { Position, Velocity } from "../../../lib/positionMotion";
 import { spritesRenderer } from "../../../lib/sprites.js";
-import { SeekSpeed, seekSpeedSystem } from "./SeekSpeed.js";
+import { SeekSpeed, seekSpeedSystem } from "../../../lib/SeekSpeed.js";
 import { FlockingBoid, flockingBoidsSystem } from "./FlockingBoid.js";
-import { Expiration, expirationSystem, Tombstone } from "./Expiration";
-import { screenBoundsSystem } from "./ScreenBounds.js";
-import { spawnerSystem } from "./Spawner.js";
+import { Expiration, expirationSystem, Tombstone } from "../../../lib/Expiration.js";
+import { screenBoundsSystem } from "../../../lib/ScreenBounds.js";
+import { spawnerSystem } from "../../../lib/Spawner.js";
 import { BoidEntity, BoidSprite, boidsQuery } from "./Boid.js";
 import {
   ExplosionEntity,
