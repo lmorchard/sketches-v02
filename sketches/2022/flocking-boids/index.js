@@ -82,8 +82,6 @@ function setupTweakPane({ spawnerOptions, flockingBoidsOptions }) {
   const pane = new Pane();
   const rootFolder = pane.addFolder({ title: document.title, expanded: true });
 
-  rootFolder.addInput(spawnerOptions, "maxEntities", { min: 10, max: 1000 });
-
   rootFolder.addInput(flockingBoidsOptions, "visualRange", {
     min: 5,
     max: 200,
@@ -114,6 +112,8 @@ function setupTweakPane({ spawnerOptions, flockingBoidsOptions }) {
     max: 1.0,
     step: 0.01,
   });
+
+  rootFolder.addInput(spawnerOptions, "maxEntities", { min: 10, max: 1000 });
 
   return { pane, rootFolder };
 }
