@@ -9,14 +9,17 @@ import { Position, Velocity } from "../../../lib/positionMotion";
 import { spritesRenderer } from "../../../lib/sprites.js";
 import { SeekSpeed, seekSpeedSystem } from "../../../lib/SeekSpeed.js";
 import { FlockingBoid, flockingBoidsSystem } from "./FlockingBoid.js";
-import { Expiration, expirationSystem, Tombstone } from "../../../lib/Expiration.js";
+import {
+  Expiration,
+  expirationSystem,
+  Tombstone,
+} from "../../../lib/Expiration.js";
 import { screenBoundsSystem } from "../../../lib/ScreenBounds.js";
 import { spawnerSystem } from "../../../lib/Spawner.js";
-import { BoidEntity, BoidSprite, boidsQuery } from "./Boid.js";
+import { BoidEntity, BoidSprite } from "../../../lib/Boid.js";
 import {
   ExplosionEntity,
   ExplosionSprite,
-  explosionsQuery,
   explosionsUpdateSystem,
 } from "./Explosion.js";
 
@@ -29,7 +32,7 @@ async function main() {
   const stats = Stats.init();
 
   const spawnerOptions = {
-    entityQuery: boidsQuery,
+    entityQuery: BoidEntity.query,
     spawnEntity: spawnBoid,
     maxEntities: MAX_BOIDS,
     maxPerFrame: 20,
@@ -67,8 +70,8 @@ async function main() {
     pipe(
       autoSizedRenderer(),
       spritesRenderer([
-        [boidsQuery, BoidEntity, BoidSprite, "boidSprites"],
-        [explosionsQuery, ExplosionEntity, ExplosionSprite, "explosionSprites"],
+        [BoidEntity.query, BoidEntity, BoidSprite],
+        [ExplosionEntity.query, ExplosionEntity, ExplosionSprite],
       ]),
       gridRenderer()
     ),
@@ -125,7 +128,7 @@ const tweakPaneUpdateSystem = (pane, rootFolder) => {
   Object.keys(watch).forEach((name) => rootFolder.addMonitor(watch, name));
 
   return (world) => {
-    watch.boidsCount = boidsQuery(world).length;
+    watch.boidsCount = BoidEntity.query(world).length;
     pane.refresh();
     return world;
   };
@@ -143,7 +146,7 @@ const spawnBoid = (world) => {
       y: -300 + Math.random() * 600,
       r: 0,
     },
-    BoidSpriteOptions: {
+    SpriteOptions: {
       scaleX: 0.125,
       scaleY: 0.125,
       lineWidth: 10.0,

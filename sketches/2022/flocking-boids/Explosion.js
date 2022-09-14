@@ -91,8 +91,7 @@ export class ExplosionSprite extends BaseSprite {
 
     super.draw(world, entity);
 
-    const { ExplosionLines, SpriteOptions } = entity;
-    const { lineWidth, color } = SpriteOptions;
+    const { lineWidth, color } = entity.SpriteOptions;
     const {
       numLines,
       angles,
@@ -101,7 +100,7 @@ export class ExplosionSprite extends BaseSprite {
       lineLengths,
       lineStarts,
       lineEnds,
-    } = ExplosionLines;
+    } = entity.ExplosionLines;
 
     for (let idx = 0; idx < numLines; idx++) {
       const dx = Math.cos(angles[idx]);
@@ -153,6 +152,7 @@ export const explosionsQuery = defineQuery([
 export const explosionsUpdateSystem = (options) => (world) =>
   updateEntities(world, [[explosionsQuery, ExplosionEntity]]);
 
-export const explosionsRenderer = () => spritesRenderer([
-  [explosionsQuery, ExplosionEntity, ExplosionSprite, "explosionSprites"],
-]);
+export const explosionsRenderer = () =>
+  spritesRenderer([
+    [explosionsQuery, ExplosionEntity, ExplosionSprite, "explosionSprites"],
+  ]);
