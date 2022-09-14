@@ -21,7 +21,7 @@ import {
   ExplosionEntity,
   ExplosionSprite,
   explosionsUpdateSystem,
-} from "./Explosion.js";
+} from "../../../lib/Explosion.js";
 
 import "../../../index.css";
 
