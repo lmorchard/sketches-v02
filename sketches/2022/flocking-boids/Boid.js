@@ -1,7 +1,7 @@
 import { defineQuery, defineComponent, Types } from "bitecs";
 import { SmoothGraphics as Graphics } from "@pixi/graphics-smooth";
 import { updateEntities, BaseEntityProxy } from "../../../lib/ecsUtils.js";
-import { updateSprites } from "../../../lib/sprites.js";
+import { updateSprites, BaseSprite } from "../../../lib/sprites.js";
 import { Position, Velocity } from "../../../lib/positionMotion";
 
 export const BoidSpriteOptions = defineComponent({
@@ -36,15 +36,7 @@ export const boidsQuery = defineQuery([Position, Velocity, BoidSpriteOptions]);
 export const boidsUpdateSystem = (options) => (world) =>
   updateEntities(world, [[boidsQuery, BoidEntity]]);
 
-export class BoidSprite {
-  constructor(world, boidEntity) {
-    this.g = new Graphics();
-    this.draw(world, boidEntity);
-  }
-
-  root() {
-    return this.g;
-  }
+export class BoidSprite extends BaseSprite {
 
   draw(world, boidEntity) {
     const { g } = this;
@@ -63,29 +55,16 @@ export class BoidSprite {
   update(world, boidEntity) {
     const { g } = this;
     const { Position, Velocity, BoidSpriteOptions } = boidEntity;
-    const { scaleX, scaleY, faceHeading } = BoidSpriteOptions;
+    const { scaleX, scaleY } = BoidSpriteOptions;
 
     g.x = Position.x;
     g.y = Position.y;
-    g.rotation = faceHeading ? Math.atan2(Velocity.y, Velocity.x) : Position.r;
+    g.rotation = Math.atan2(Velocity.y, Velocity.x);
     g.scale.x = scaleX;
     g.scale.y = scaleY;
   }
-}
-
-export const boidsRenderer = (options) => {
-  const init = (world) => {
-    const { stage } = world;
-    world.gBoids = new Graphics();
-    stage.addChild(world.gBoids);
-  };
-  return (world) => {
-    if (!world.gBoids) {
-      init(world);
-    }
-    updateSprites(world, world.gBoids, [
-      [boidsQuery, BoidEntity, BoidSprite, "boidSprites"],
-    ]);
-    return world;
-  };
 };
+
+export const boidsRenderer = () => spritesRenderer([
+  [boidsQuery, BoidEntity, BoidSprite, "boidSprites"],
+]);

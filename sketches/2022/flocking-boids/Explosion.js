@@ -153,19 +153,6 @@ export const explosionsQuery = defineQuery([
 export const explosionsUpdateSystem = (options) => (world) =>
   updateEntities(world, [[explosionsQuery, ExplosionEntity]]);
 
-export const explosionsRenderer = (options) => {
-  const init = (world) => {
-    const { stage } = world;
-    world.gExplosions = new Graphics();
-    stage.addChild(world.gExplosions);
-  };
-  return (world) => {
-    if (!world.gExplosions) {
-      init(world);
-    }
-    updateSprites(world, world.gExplosions, [
-      [explosionsQuery, ExplosionEntity, ExplosionSprite, "explosionSprites"],
-    ]);
-    return world;
-  };
-};
+export const explosionsRenderer = () => spritesRenderer([
+  [explosionsQuery, ExplosionEntity, ExplosionSprite, "explosionSprites"],
+]);
