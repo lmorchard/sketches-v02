@@ -1,10 +1,10 @@
 import { pipe } from "bitecs";
-import * as World from "../../../lib/world.js";
-import * as Stats from "../../../lib/stats.js";
+import * as World from "../../../lib/core/world.js";
+import * as Stats from "../../../lib/core/stats.js";
 import { Pane } from "tweakpane";
 import { autoSizedRenderer, gridRenderer } from "../../../lib/viewport/pixi.js";
-import { movementSystem } from "../../../lib/positionMotion";
-import { hslToRgb } from "../../../lib/hslToRgb";
+import { movementSystem } from "../../../lib/positionMotion.js";
+import { hslToRgb } from "../../../lib/utils/hslToRgb";
 import {
   BoidEntity,
   boidsUpdateSystem,

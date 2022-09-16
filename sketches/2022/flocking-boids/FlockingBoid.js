@@ -1,7 +1,7 @@
-import { Position, Velocity } from "../../../lib/positionMotion";
+import { Position, Velocity } from "../../../lib/positionMotion.js";
 import { defineQuery, defineComponent, Types } from "bitecs";
-import { GenericComponentProxy, setEid } from "../../../lib/ecsUtils.js";
-import { distanceSq } from "../../../lib/utils.js";
+import { GenericComponentProxy, setEid } from "../../../lib/core/entities.js";
+import { distanceSq } from "../../../lib/utils/utils.js";
 import * as Quadtree from "@timohausmann/quadtree-ts";
 
 export const FlockingBoid = defineComponent({

@@ -1,15 +1,15 @@
 import { pipe, hasComponent } from "bitecs";
 import { Pane } from "tweakpane";
-import * as World from "../../../lib/world.js";
-import * as Stats from "../../../lib/stats.js";
+import * as World from "../../../lib/core/world.js";
+import * as Stats from "../../../lib/core/stats.js";
 import { autoSizedRenderer, gridRenderer } from "../../../lib/viewport/pixi.js";
-import { hslToRgb } from "../../../lib/hslToRgb.js";
+import { hslToRgb } from "../../../lib/utils/hslToRgb.js";
 import {
   Position,
   Velocity,
   movementSystem,
 } from "../../../lib/positionMotion.js";
-import { spritesRenderer } from "../../../lib/sprites.js";
+import { spritesRenderer } from "../../../lib/core/sprites.js";
 import { SeekSpeed, seekSpeedSystem } from "../../../lib/SeekSpeed.js";
 import { FlockingBoid, flockingBoidsSystem } from "./FlockingBoid.js";
 import {

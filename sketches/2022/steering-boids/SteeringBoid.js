@@ -1,8 +1,6 @@
 import { Position, Velocity } from "../../../lib/positionMotion";
 import { defineQuery, defineComponent, Types } from "bitecs";
-import { GenericComponentProxy, setEid } from "../../../lib/ecsUtils.js";
-import { distanceSq } from "../../../lib/utils.js";
-import * as Quadtree from "@timohausmann/quadtree-ts";
+import { GenericComponentProxy, setEid } from "../../../lib/core/entities.js";
 
 export const SteeringBoid = defineComponent({
   // mass: Types.f32,
