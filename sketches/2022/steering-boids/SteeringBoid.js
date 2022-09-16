@@ -1,6 +1,7 @@
 import { Position, Velocity } from "../../../lib/positionMotion";
 import { defineQuery, defineComponent, Types } from "bitecs";
 import { GenericComponentProxy, setEid } from "../../../lib/core/entities.js";
+import { PositionIndexService } from "../../../lib/PositionIndex.js";
 
 export const SteeringBoid = defineComponent({
   // mass: Types.f32,
@@ -25,6 +26,27 @@ export const steeringBoidsSystem = (options = {}) => {
   const velocity = new GenericComponentProxy(Velocity);
   let deltaSec;
   let debug;
+
+  const main = (world) => {
+    deltaSec = world.time.deltaSec;
+    for (const eid of steeringBoidsQuery(world)) {
+      setEid(eid, steeringBoid, position, velocity);
+
+      seek();
+
+      // flee
+      // arrive
+      // wander
+      // pursuit
+      // evade
+      // movement manager
+      // collision avoidance
+
+      manageSpeed();
+    }
+
+    return world;
+  };
 
   const seek = () => {
     const { x, y } = position;
@@ -54,24 +76,5 @@ export const steeringBoidsSystem = (options = {}) => {
     velocity.y += change * Math.sin(heading);
   };
 
-  return (world) => {
-    deltaSec = world.time.deltaSec;
-    for (const eid of steeringBoidsQuery(world)) {
-      setEid(eid, steeringBoid, position, velocity);
-
-      seek();
-
-      // flee
-      // arrive
-      // wander
-      // pursuit
-      // evade
-      // movement manager
-      // collision avoidance
-
-      manageSpeed();
-    }
-
-    return world;
-  };
+  return main;
 };

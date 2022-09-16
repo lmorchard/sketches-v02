@@ -25,6 +25,7 @@ import {
   ExplosionSprite,
   explosionsUpdateSystem,
 } from "../../../lib/Explosion.js";
+import { positionIndexSystem } from "../../../lib/PositionIndex.js";
 
 import "../../../index.css";
 
@@ -59,11 +60,12 @@ async function main() {
   world.run(
     pipe(
       spawnerSystem(spawnerOptions),
+      movementSystem(),
+      positionIndexSystem(),
       flockingBoidsSystem(flockingBoidsOptions),
       explosionsUpdateSystem(),
       seekSpeedSystem(),
       screenBoundsSystem(),
-      movementSystem(),
       expirationSystem((eid) => {
         if (hasComponent(world, Tombstone, eid)) return;
         spawnTombstoneForBoid(world, eid);
@@ -80,6 +82,8 @@ async function main() {
     ),
     stats
   );
+
+  window.world = world;
 
   console.log("READY.");
 }
