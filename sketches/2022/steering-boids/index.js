@@ -35,7 +35,7 @@ import { AsteroidEntity, AsteroidSprite } from "../../../lib/Asteroid.js";
 import "../../../index.css";
 
 const NUM_WANDERERS = 10;
-const NUM_ASTEROIDS = 10;
+const NUM_ASTEROIDS = 12;
 const MAX_BOIDS = 10;
 
 async function main() {
@@ -70,8 +70,13 @@ async function main() {
   }
 
   const asteroids = [];
+  let angle = 0;
+  const angleStep = (Math.PI * 2) / NUM_ASTEROIDS;
   for (let idx = 0; idx < NUM_ASTEROIDS; idx++) {
-    asteroids.push(spawnAsteroid(world));
+    angle += angleStep * (1.0 + (-0.25 + (0.5 * Math.random())));
+    const x = 300 * Math.cos(angle);
+    const y = 300 * Math.sin(angle);
+    asteroids.push(spawnAsteroid(world, x, y));
   }
 
   world.run(
@@ -172,13 +177,10 @@ const spawnTombstoneForBoid = (world, eid) => {
     });
 };
 
-const spawnAsteroid = (world) => {
-  const angle = Math.PI * 2 * Math.random();
-  const x = 300 * Math.cos(angle);
-  const y = 300 * Math.sin(angle);
-
+const spawnAsteroid = (world, x, y) => {
   return AsteroidEntity.spawn(world, {
-    Position: { x, y }
+    Position: { x, y },
+    Velocity: { r: Math.PI * ( -0.5 + 1.0 * Math.random()) }
   });
 }
 
