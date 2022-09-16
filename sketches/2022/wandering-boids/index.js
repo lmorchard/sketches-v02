@@ -5,7 +5,11 @@ import { Pane } from "tweakpane";
 import { autoSizedRenderer, gridRenderer } from "../../../lib/viewport/pixi.js";
 import { movementSystem } from "../../../lib/positionMotion";
 import { hslToRgb } from "../../../lib/hslToRgb";
-import { BoidEntity, boidsUpdateSystem, boidsRenderer } from "../../../lib/Boid.js";
+import {
+  BoidEntity,
+  boidsUpdateSystem,
+  boidsRenderer,
+} from "../../../lib/Boid.js";
 import { headingAndSpeedSystem } from "../../../lib/HeadingAndSpeed.js";
 import { Wanderer, wandererSystem } from "../../../lib/Wanderer.js";
 import { HeadingAndSpeed } from "../../../lib/HeadingAndSpeed.js";
@@ -20,29 +24,30 @@ async function main() {
   const pane = new Pane();
 
   for (let idx = 0; idx < NUM_WANDERERS; idx++) {
-    const boid = BoidEntity.spawn(world, {
-      Position: {
-        x: -200 + Math.random() * 400,
-        y: -200 + Math.random() * 400,
-        r: 0,
-      },
-      SpriteOptions: {
-        scaleX: 0.25,
-        scaleY: 0.25,
-        lineWidth: 4.0,
-        color: hslToRgb(Math.random(), 1.0, 0.5),
-      },
-    });
-    boid.addComponents(world, { HeadingAndSpeed, Wanderer });
-    Object.assign(boid.HeadingAndSpeed, {
-      heading: Math.PI * 2 * Math.random(),
-      speed: 50 + 200 * Math.random(),
-    });
-    Object.assign(boid.Wanderer, {
-      originX: 0,
-      originY: 0,
-      maxDistance: 500,
-    });
+    const boid = BoidEntity.spawn(world)
+      .add({ HeadingAndSpeed, Wanderer })
+      .set({
+        Position: {
+          x: -200 + Math.random() * 400,
+          y: -200 + Math.random() * 400,
+          r: 0,
+        },
+        SpriteOptions: {
+          scaleX: 0.25,
+          scaleY: 0.25,
+          lineWidth: 4.0,
+          color: hslToRgb(Math.random(), 1.0, 0.5),
+        },
+        HeadingAndSpeed: {
+          heading: Math.PI * 2 * Math.random(),
+          speed: 50 + 200 * Math.random(),
+        },
+        Wanderer: {
+          originX: 0,
+          originY: 0,
+          maxDistance: 500,
+        },
+      });
   }
 
   world.run(
