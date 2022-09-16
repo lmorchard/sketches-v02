@@ -17,7 +17,7 @@ import {
   expirationSystem,
   Tombstone,
 } from "../../../lib/Expiration.js";
-import { screenBoundsSystem } from "../../../lib/ScreenBounds.js";
+import { AvoidScreenBounds, screenBoundsSystem } from "../../../lib/ScreenBounds.js";
 import { spawnerSystem } from "../../../lib/Spawner.js";
 import { BoidEntity, BoidSprite } from "../../../lib/Boid.js";
 import {
@@ -143,7 +143,7 @@ const spawnBoid = (world) => {
   const y = 1000 * Math.sin(angle);
 
   return BoidEntity.spawn(world)
-    .add({ Expiration, SeekSpeed, FlockingBoid })
+    .add({ Expiration, SeekSpeed, AvoidScreenBounds, FlockingBoid })
     .set({
       Position: { x: x, y: y, r: 0 },
       Velocity: {
