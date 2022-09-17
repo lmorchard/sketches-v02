@@ -84,7 +84,6 @@ async function main() {
   );
 
   window.world = world;
-
   console.log("READY.");
 }
 
