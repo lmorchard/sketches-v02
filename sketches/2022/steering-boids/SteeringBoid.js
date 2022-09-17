@@ -52,7 +52,7 @@ export const steeringBoidsSystem = (options = {}) => {
     for (const eid of steeringBoidsQuery(world)) {
       setEid(eid, steeringBoid, position, velocity);
 
-      const speed = velocity.length();
+      // Accumulate all the steering behavior forces
       forceVector.copy(nullVector).add(
         seek(steeringBoid),
         flee(steeringBoid),
@@ -64,8 +64,12 @@ export const steeringBoidsSystem = (options = {}) => {
         // collision avoidance
         avoidBorder(steeringBoid, world)
       );
+
+      // Add the steering force to the velocity but maintain previous speed
+      const speed = velocity.length();
       velocity.add(forceVector).truncate(speed);
 
+      // Finally, attempt to manage speed toward target
       velocity.add(maintainMaxSpeed(steeringBoid));
     }
 
