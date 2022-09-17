@@ -25,10 +25,8 @@ import {
   ExplosionSprite,
   explosionsUpdateSystem,
 } from "../../../lib/Explosion.js";
-import {
-  AvoidScreenBounds,
-} from "../../../lib/ScreenBounds.js";
-import { SteeringBoid, steeringBoidsSystem } from "./SteeringBoid.js";
+import { AvoidScreenBounds } from "../../../lib/ScreenBounds.js";
+import { SteeringBoid, Obstacle, steeringBoidsSystem } from "./SteeringBoid.js";
 import { AsteroidEntity, AsteroidSprite } from "../../../lib/Asteroid.js";
 import {
   positionIndexService,
@@ -37,9 +35,9 @@ import {
 
 import "../../../index.css";
 
-const NUM_WANDERERS = 10;
-const NUM_ASTEROIDS = 12;
-const MAX_BOIDS = 25;
+const NUM_WANDERERS = 0; // 10;
+const NUM_ASTEROIDS = 10;
+const MAX_BOIDS = 20;
 
 async function main() {
   const world = World.init();
@@ -73,14 +71,17 @@ async function main() {
   }
 
   const asteroids = [];
-  let angle = 0;
-  const angleStep = (Math.PI * 2) / NUM_ASTEROIDS;
-  for (let idx = 0; idx < NUM_ASTEROIDS; idx++) {
-    angle += angleStep * (1.0 + (-0.25 + 0.5 * Math.random()));
-    const x = 300 * Math.cos(angle);
-    const y = 300 * Math.sin(angle);
-    asteroids.push(spawnAsteroid(world, x, y));
-  }
+  [375, 275, 175].forEach((spawnDistance) => {
+    let angle = 0;
+    //const spawnDistance = 175;
+    const angleStep = (Math.PI * 2) / NUM_ASTEROIDS;
+    for (let idx = 0; idx < NUM_ASTEROIDS; idx++) {
+      angle += angleStep * (1.0 + (-0.25 + 0.5 * Math.random()));
+      const x = spawnDistance * Math.cos(angle);
+      const y = spawnDistance * Math.sin(angle);
+      asteroids.push(spawnAsteroid(world, x, y));
+    }
+  });
 
   world.run(
     pipe(
@@ -144,38 +145,42 @@ const spawnWanderer = (world) => {
 
 const spawnBoid = (world) => {
   const angle = Math.PI * 2 * Math.random();
-  const x = 700 * Math.cos(angle);
-  const y = 700 * Math.sin(angle);
+  const x = 800 * Math.cos(angle);
+  const y = 800 * Math.sin(angle);
 
   return BoidEntity.spawn(world)
     .add({ Expiration, SteeringBoid, AvoidScreenBounds })
     .set({
       SteeringBoid: {
-        maxSpeed: 250,
-        acceleration: 5,
-        braking: 5,
+        maxSpeed: 200,
+        acceleration: 2,
+        braking: 2,
 
-        seekForce: 0,
-        seekX: -200, // -200 + Math.random() * 400,
-        seekY: -200, // -200 + Math.random() * 400,
+        seekForce: 10,
+        seekX: 0,
+        seekY: 0,
 
         fleeForce: 0,
         fleeX: 0,
         fleeY: 0,
 
-        wanderForce: 5,
-        wanderDistance: 10,
+        wanderForce: 0,
+        wanderDistance: 20,
         wanderRadius: 10,
 
+        avoidObstaclesForce: 10,
+        avoidObstaclesGroups: [1],
+        avoidObstaclesRange: 100,
+      
         avoidBorderForce: 50,
         originX: 0,
         originY: 0,
         marginX: 75,
-        marginY: 75,      
+        marginY: 75,
       },
       Velocity: { x: 50, y: 0 },
       Position: { x: x, y: y, r: 0 },
-      Expiration: { timeToLive: Math.random() * 30.0 },
+      Expiration: { timeToLive: Math.random() * 15.0 },
       SpriteOptions: {
         scaleX: 0.125,
         scaleY: 0.125,
@@ -197,10 +202,14 @@ const spawnTombstoneForBoid = (world, eid) => {
 };
 
 const spawnAsteroid = (world, x, y) => {
-  return AsteroidEntity.spawn(world, {
-    Position: { x, y },
-    Velocity: { r: Math.PI * (-0.5 + 1.0 * Math.random()) },
-  });
+  return AsteroidEntity.spawn(world)
+    .add({ Obstacle })
+    .set({
+      Position: { x, y },
+      Velocity: { r: Math.PI * (-0.5 + 1.0 * Math.random()) },
+      SpriteOptions: { scaleX: 0.5, scaleY: 0.5, lineWidth: 2.0 },
+      Obstacle: { groups: [1], radius: 50 },
+    });
 };
 
 main().catch(console.error);

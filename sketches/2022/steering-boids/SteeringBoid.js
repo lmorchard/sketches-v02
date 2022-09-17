@@ -1,8 +1,15 @@
 import { Position, Velocity } from "../../../lib/positionMotion";
-import { defineQuery, defineComponent, Types } from "bitecs";
+import { defineQuery, defineComponent, hasComponent, Types } from "bitecs";
 import { GenericComponentProxy, setEid } from "../../../lib/core/entities.js";
 import { Vector2D } from "../../../lib/utils/vector.js";
 import { Vector2DComponentProxy } from "../../../lib/utils/VectorComponentProxy.js";
+import { positionIndexService } from "../../../lib/PositionIndex.js";
+
+const MAX_OBSTACLE_GROUPS = 4;
+export const Obstacle = defineComponent({
+  radius: Types.f32,
+  groups: [Types.ui8, MAX_OBSTACLE_GROUPS],
+});
 
 export const SteeringBoid = defineComponent({
   // mass: Types.f32,
@@ -24,6 +31,10 @@ export const SteeringBoid = defineComponent({
   wanderRadius: Types.f32,
   wanderAngle: Types.f32,
 
+  avoidObstaclesForce: Types.f32,
+  avoidObstaclesGroups: [Types.ui8, MAX_OBSTACLE_GROUPS],
+  avoidObstaclesRange: Types.f32,
+
   avoidBorderForce: Types.f32,
   originX: Types.f32,
   originY: Types.f32,
@@ -41,73 +52,39 @@ export const steeringBoidsSystem = (options = {}) => {
   const steeringBoid = new GenericComponentProxy(SteeringBoid);
   const position = new Vector2DComponentProxy(Position);
   const velocity = new Vector2DComponentProxy(Velocity);
-  let deltaSec;
+  const otherPosition = new Vector2DComponentProxy(Position);
+  const otherObstacle = new GenericComponentProxy(Obstacle);
 
   const nullVector = new Vector2D(0, 0);
   const otherVector = new Vector2D();
   const forceVector = new Vector2D();
 
   const main = (world) => {
-    deltaSec = world.time.deltaSec;
     for (const eid of steeringBoidsQuery(world)) {
       setEid(eid, steeringBoid, position, velocity);
 
+      velocity.add(maintainMaxSpeed(steeringBoid));
+
       // Accumulate all the steering behavior forces
       forceVector.copy(nullVector).add(
-        seek(steeringBoid),
-        flee(steeringBoid),
+        seek(steeringBoid, world, eid),
+        flee(steeringBoid, world, eid),
         // arrive
-        wander(steeringBoid),
+        wander(steeringBoid, world, eid),
         // pursuit
         // evade
         // movement manager
         // collision avoidance
-        avoidBorder(steeringBoid, world)
+        avoidObstacles(steeringBoid, world, eid),
+        avoidBorder(steeringBoid, world, eid)
       );
 
       // Add the steering force to the velocity but maintain previous speed
       const speed = velocity.length();
       velocity.add(forceVector).truncate(speed);
-
-      // Finally, attempt to manage speed toward target
-      velocity.add(maintainMaxSpeed(steeringBoid));
     }
 
     return world;
-  };
-
-  const avoidBorderVector = new Vector2D();
-  const avoidBorder = (
-    {
-      originX = 0,
-      originY = 0,
-      marginX = 200,
-      marginY = 200,
-      avoidBorderForce = 7.0,
-    },
-    world
-  ) => {
-    if (!avoidBorderForce) return nullVector;
-
-    const {
-      renderer: { width, height },
-    } = world;
-    const hwidth = (width - marginX) / 2;
-    const hheight = (height - marginY) / 2;
-    const { x, y } = position;
-
-    if (
-      x > originX - hwidth &&
-      x < originX + hwidth &&
-      y > originY - hheight &&
-      y < originY + hheight
-    )
-      return nullVector;
-
-    return avoidBorderVector
-      .copy(otherVector.set(originX, originY))
-      .subtract(position)
-      .truncate(avoidBorderForce);
   };
 
   const seekVector = new Vector2D();
@@ -146,6 +123,92 @@ export const steeringBoidsSystem = (options = {}) => {
       .scaleBy(wanderDistance)
       .add(wanderDisplacement)
       .truncate(wanderForce);
+  };
+
+  const avoidObstaclesVector = new Vector2D();
+  const avoidObstaclesAheadPoint = new Vector2D();
+  const avoidObstaclesPushVector = new Vector2D();
+  const avoidObstacles = (
+    { avoidObstaclesForce, avoidObstaclesGroups, avoidObstaclesRange },
+    world,
+    eid
+  ) => {
+    if (!avoidObstaclesForce) return nullVector;
+
+    const deltaSec = world.time.deltaSec;
+    const avoidStep = velocity.length() * deltaSec;
+
+    avoidObstaclesAheadPoint
+      .copy(velocity)
+      .normalize()
+      .scaleBy(avoidStep)
+      // .scaleBy(avoidObstaclesRange)
+      .add(position);
+
+    const nearbyEids = positionIndexService
+      .using(world)
+      .findNearestToEntity(eid, avoidObstaclesRange)
+      // TODO: filter for obstacle group intersection too
+      .filter(eid => hasComponent(world, Obstacle, eid));
+
+    avoidObstaclesVector.copy(nullVector);
+    for (const otherEid of nearbyEids) {
+      setEid(otherEid, otherPosition, otherObstacle);
+      const { radius } = otherObstacle;
+      
+      // Try to ignore obstacles already behind us.
+      const angleTo = position.angleTo(otherPosition);
+      //if (Math.abs(angleTo) > Math.PI) continue;
+
+      const distanceTo = position.distanceTo(otherPosition);
+      const distanceFactor = avoidObstaclesRange / distanceTo;
+
+      avoidObstaclesPushVector
+        .copy(position)
+        .subtract(otherPosition)
+        .normalize()
+        .scaleBy(radius)
+        .scaleBy(distanceFactor);
+
+      avoidObstaclesVector.add(avoidObstaclesPushVector);      
+    }
+    avoidObstaclesVector.truncate(avoidObstaclesForce);
+      
+    return avoidObstaclesVector;
+  };
+
+  const avoidBorderVector = new Vector2D();
+  const avoidBorder = (
+    {
+      originX = 0,
+      originY = 0,
+      marginX = 200,
+      marginY = 200,
+      avoidBorderForce = 7.0,
+    },
+    world
+  ) => {
+    if (!avoidBorderForce) return nullVector;
+
+    const {
+      renderer: { width, height },
+    } = world;
+    const hwidth = (width - marginX) / 2;
+    const hheight = (height - marginY) / 2;
+    const { x, y } = position;
+
+    if (
+      x > originX - hwidth &&
+      x < originX + hwidth &&
+      y > originY - hheight &&
+      y < originY + hheight
+    )
+      return nullVector;
+
+    return avoidBorderVector
+      .copy(otherVector.set(originX, originY))
+      .subtract(position)
+      .truncate(avoidBorderForce);
   };
 
   const maintainMaxSpeedVector = new Vector2D();
