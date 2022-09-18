@@ -127,7 +127,6 @@ export const steeringBoidsSystem = (options = {}) => {
   };
 
   const avoidObstaclesVector = new Vector2D();
-  const avoidObstaclesAheadPoint = new Vector2D();
   const avoidObstaclesPushVector = new Vector2D();
   const avoidObstacles = (
     { avoidObstaclesForce, avoidObstaclesRadius, avoidObstaclesRange },
@@ -135,16 +134,6 @@ export const steeringBoidsSystem = (options = {}) => {
     eid
   ) => {
     if (!avoidObstaclesForce) return nullVector;
-
-    const deltaSec = world.time.deltaSec;
-    const avoidStep = velocity.length() * deltaSec;
-
-    avoidObstaclesAheadPoint
-      .copy(velocity)
-      .normalize()
-      .scaleBy(avoidStep)
-      // .scaleBy(avoidObstaclesRange)
-      .add(position);
 
     const nearbyEids = findNearbyObstacles(
       world,
