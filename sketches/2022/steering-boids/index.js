@@ -26,7 +26,12 @@ import {
   explosionsUpdateSystem,
 } from "../../../lib/Explosion.js";
 import { AvoidScreenBounds } from "../../../lib/ScreenBounds.js";
-import { SteeringBoid, Obstacle, steeringBoidsSystem } from "./SteeringBoid.js";
+import {
+  SteeringBoid,
+  Obstacle,
+  steeringBoidsSystem,
+  steeringBoidsDebugRendererSystem,
+} from "./SteeringBoid.js";
 import { AsteroidEntity, AsteroidSprite } from "../../../lib/Asteroid.js";
 import {
   positionIndexService,
@@ -35,6 +40,7 @@ import {
 import {
   collisionService,
   collisionSystem,
+  collisionDebugRendererSystem,
   Collidable,
 } from "../../../lib/Collisions.js";
 
@@ -46,6 +52,8 @@ const MAX_BOIDS = 50;
 
 /*
 TODO:
+- reimplement bouncer system!
+
 - abstract world.stage from autoSizedRenderer behind a symbol and a service
 - start adding debug draw to collision avoidance?
 - create a time service for accessing world-stored timers?
@@ -54,6 +62,8 @@ TODO:
 async function main() {
   const world = World.init();
   const stats = Stats.init();
+
+  world.debug = true;
 
   const pane = new Pane();
   const paneRoot = pane.addFolder({ title: document.title, expanded: true });
@@ -80,9 +90,8 @@ async function main() {
   }
 
   const asteroids = [];
-  [375, 275, 175].forEach((spawnDistance) => {
+  [425, 375, 275, 175].forEach((spawnDistance) => {
     let angle = 0;
-    //const spawnDistance = 175;
     const angleStep = (Math.PI * 2) / NUM_ASTEROIDS;
     for (let idx = 0; idx < NUM_ASTEROIDS; idx++) {
       angle += angleStep * (1.0 + (-0.25 + 0.5 * Math.random()));
@@ -107,12 +116,14 @@ async function main() {
     ),
     pipe(
       autoSizedRenderer(),
+      gridRenderer(),
       spritesRenderer([
         [BoidEntity, BoidSprite],
         [ExplosionEntity, ExplosionSprite],
         [AsteroidEntity, AsteroidSprite],
       ]),
-      gridRenderer()
+      collisionDebugRendererSystem(),
+      steeringBoidsDebugRendererSystem()
     ),
     stats
   );
@@ -160,14 +171,11 @@ const spawnBoid = (world) => {
   const angle = Math.PI * 2 * Math.random();
   const x = 800 * Math.cos(angle);
   const y = 800 * Math.sin(angle);
+  const color = hslToRgb(Math.random(), 1.0, 0.5);
 
   return BoidEntity.spawn(world)
     .add({ Expiration, SteeringBoid, AvoidScreenBounds, Collidable })
     .set({
-      Collidable: {
-        group: 1,
-        radius: 50,
-      },
       SteeringBoid: {
         maxSpeed: 200,
         acceleration: 2,
@@ -181,13 +189,15 @@ const spawnBoid = (world) => {
         fleeX: 0,
         fleeY: 0,
 
-        wanderForce: 5,
+        wanderForce: 7,
         wanderDistance: 20,
-        wanderRadius: 10,
+        wanderRadius: 20,
 
         avoidObstaclesForce: 15,
-        avoidObstaclesGroups: [1],
         avoidObstaclesRange: 100,
+        avoidObstaclesRadius: 15,
+        avoidObstaclesGroups: [1],
+        avoidObstaclesViewAngle: 1.5,
 
         avoidBorderForce: 50,
         originX: 0,
@@ -198,12 +208,8 @@ const spawnBoid = (world) => {
       Velocity: { x: 50, y: 0 },
       Position: { x: x, y: y, r: 0 },
       Expiration: { timeToLive: Math.random() * 15.0 },
-      SpriteOptions: {
-        scaleX: 0.125,
-        scaleY: 0.125,
-        lineWidth: 10.0,
-        color: hslToRgb(Math.random(), 1.0, 0.5),
-      },
+      Collidable: { group: 1, radius: 10 },
+      SpriteOptions: { scaleX: 0.125, scaleY: 0.125, lineWidth: 10.0, color },
     });
 };
 
@@ -220,12 +226,13 @@ const spawnTombstoneForBoid = (world, eid) => {
 
 const spawnAsteroid = (world, x, y) => {
   return AsteroidEntity.spawn(world)
-    .add({ Obstacle })
+    .add({ Obstacle, Collidable })
     .set({
       Position: { x, y },
       Velocity: { r: Math.PI * (-0.5 + 1.0 * Math.random()) },
       SpriteOptions: { scaleX: 0.5, scaleY: 0.5, lineWidth: 2.0 },
-      Obstacle: { groups: [1], radius: 50 },
+      Obstacle: { groups: [1], radius: 25 },
+      Collidable: { group: 1, radius: 20 },
     });
 };
 

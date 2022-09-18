@@ -34,6 +34,7 @@ export const SteeringBoid = defineComponent({
   avoidObstaclesForce: Types.f32,
   avoidObstaclesGroups: [Types.ui8, MAX_OBSTACLE_GROUPS],
   avoidObstaclesRange: Types.f32,
+  avoidObstaclesViewAngle: Types.f32,
 
   avoidBorderForce: Types.f32,
   originX: Types.f32,
@@ -129,7 +130,7 @@ export const steeringBoidsSystem = (options = {}) => {
   const avoidObstaclesAheadPoint = new Vector2D();
   const avoidObstaclesPushVector = new Vector2D();
   const avoidObstacles = (
-    { avoidObstaclesForce, avoidObstaclesGroups, avoidObstaclesRange },
+    { avoidObstaclesForce, avoidObstaclesRadius, avoidObstaclesRange },
     world,
     eid
   ) => {
@@ -145,32 +146,34 @@ export const steeringBoidsSystem = (options = {}) => {
       // .scaleBy(avoidObstaclesRange)
       .add(position);
 
-    const nearbyEids = positionIndexService
-      .using(world)
-      .findNearestToEntity(eid, avoidObstaclesRange)
-      // TODO: filter for obstacle group intersection too
-      .filter(eid => hasComponent(world, Obstacle, eid));
+    const nearbyEids = findNearbyObstacles(
+      world,
+      eid,
+      position,
+      velocity,
+      steeringBoid,
+      otherObstacle,
+      otherPosition
+    );
 
     avoidObstaclesVector.copy(nullVector);
     for (const otherEid of nearbyEids) {
       setEid(otherEid, otherPosition, otherObstacle);
-      const { radius } = otherObstacle;
-      
-      // Try to ignore obstacles already behind us.
-      // const angleTo = position.angleTo(otherPosition);
-      // if (Math.abs(angleTo) > Math.PI) continue;
 
-      const distanceTo = position.distanceTo(otherPosition);
-      const distanceFactor = avoidObstaclesRange / distanceTo;
+      const distanceTo =
+        position.distanceTo(otherPosition) -
+        otherObstacle.radius -
+        avoidObstaclesRadius;
+      const distanceFactor = distanceTo == 0 ? 1 / distanceTo : 1;
 
       avoidObstaclesPushVector
         .copy(position)
         .subtract(otherPosition)
         .normalize()
-        .scaleBy(radius)
+        .scaleBy(avoidObstaclesForce)
         .scaleBy(distanceFactor);
 
-      avoidObstaclesVector.add(avoidObstaclesPushVector);      
+      avoidObstaclesVector.add(avoidObstaclesPushVector);
     }
     avoidObstaclesVector.truncate(avoidObstaclesForce);
     return avoidObstaclesVector;
@@ -232,4 +235,77 @@ export const steeringBoidsSystem = (options = {}) => {
   };
 
   return main;
+};
+
+function findNearbyObstacles(
+  world,
+  eid,
+  position,
+  velocity,
+  steeringBoid,
+  otherObstacle,
+  otherPosition,
+) {
+  const heading = velocity.angle();
+
+  return positionIndexService
+    .using(world)
+    .findNearestToEntity(eid, steeringBoid.avoidObstaclesRange)
+    .filter((otherEid) => {
+      // Skip if this entity isn't an obstacle.
+      if (!hasComponent(world, Obstacle, otherEid)) return false;
+      setEid(otherEid, otherPosition, otherObstacle);
+
+      // Skip if this obstacle doesn't match any groups we're avoiding
+      if (
+        steeringBoid.avoidObstaclesGroups.filter((group) =>
+          otherObstacle.groups.includes(group)
+        ).length === 0
+      )
+        return false;
+
+      // Skip if this obstacle is outside our view angle
+      // TODO: is this actually a decent way to work out this angle?
+      const obstacleHeading = position.angleTo(otherPosition);
+      const angleToHeading = Math.abs(heading - obstacleHeading);
+      return angleToHeading < steeringBoid.avoidObstaclesViewAngle;
+    });
+}
+
+export const steeringBoidsDebugRendererSystem = (options = {}) => {
+  const steeringBoid = new GenericComponentProxy(SteeringBoid);
+  const position = new Vector2DComponentProxy(Position);
+  const velocity = new Vector2DComponentProxy(Velocity);
+  const otherPosition = new Vector2DComponentProxy(Position);
+  const otherObstacle = new GenericComponentProxy(Obstacle);
+  const otherVelocity = new Vector2DComponentProxy(Velocity);
+
+  return (world) => {
+    if (!world || !world.debug) return world;
+    const g = world.debugGraphics;
+
+    for (const eid of steeringBoidsQuery(world)) {
+      setEid(eid, steeringBoid, position, velocity);
+
+      // Debug obstacle avoidance
+      const nearbyEids = findNearbyObstacles(
+        world,
+        eid,
+        position,
+        velocity,
+        steeringBoid,
+        otherObstacle,
+        otherPosition
+      );
+      for (const otherEid of nearbyEids) {
+        setEid(otherEid, otherPosition, otherObstacle, otherVelocity);
+        g.lineStyle(2.0, 0xff22ff, 0.5);
+
+        g.moveTo(position.x, position.y);
+        g.lineTo(otherPosition.x, otherPosition.y);
+      }
+    }
+
+    return world;
+  };
 };
