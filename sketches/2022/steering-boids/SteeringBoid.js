@@ -157,8 +157,8 @@ export const steeringBoidsSystem = (options = {}) => {
       const { radius } = otherObstacle;
       
       // Try to ignore obstacles already behind us.
-      const angleTo = position.angleTo(otherPosition);
-      //if (Math.abs(angleTo) > Math.PI) continue;
+      // const angleTo = position.angleTo(otherPosition);
+      // if (Math.abs(angleTo) > Math.PI) continue;
 
       const distanceTo = position.distanceTo(otherPosition);
       const distanceFactor = avoidObstaclesRange / distanceTo;
@@ -173,7 +173,6 @@ export const steeringBoidsSystem = (options = {}) => {
       avoidObstaclesVector.add(avoidObstaclesPushVector);      
     }
     avoidObstaclesVector.truncate(avoidObstaclesForce);
-      
     return avoidObstaclesVector;
   };
 

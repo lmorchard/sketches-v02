@@ -21,7 +21,10 @@ const NUM_WANDERERS = 100;
 async function main() {
   const world = World.init();
   const stats = Stats.init();
+
   const pane = new Pane();
+  const paneRoot = pane.addFolder({ title: document.title, expanded: true });
+  world.addToPane(paneRoot);
 
   for (let idx = 0; idx < NUM_WANDERERS; idx++) {
     const boid = BoidEntity.spawn(world)
@@ -66,8 +69,6 @@ async function main() {
 }
 
 const tweakPaneUpdateSystem = ({ pane }) => {
-  const f = pane.addFolder({ title: document.title, expanded: true });
-
   return (world) => {
     pane.refresh();
     return world;

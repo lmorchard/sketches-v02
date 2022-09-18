@@ -32,17 +32,32 @@ import {
   positionIndexService,
   positionIndexSystem,
 } from "../../../lib/PositionIndex.js";
+import {
+  collisionService,
+  collisionSystem,
+  Collidable,
+} from "../../../lib/Collisions.js";
 
 import "../../../index.css";
 
 const NUM_WANDERERS = 0; // 10;
 const NUM_ASTEROIDS = 10;
-const MAX_BOIDS = 20;
+const MAX_BOIDS = 50;
+
+/*
+TODO:
+- abstract world.stage from autoSizedRenderer behind a symbol and a service
+- start adding debug draw to collision avoidance?
+- create a time service for accessing world-stored timers?
+*/
 
 async function main() {
   const world = World.init();
   const stats = Stats.init();
+
   const pane = new Pane();
+  const paneRoot = pane.addFolder({ title: document.title, expanded: true });
+  world.addToPane(paneRoot);
 
   const spawnerOptions = {
     entityQuery: defineQuery([Expiration, SteeringBoid]),
@@ -53,12 +68,6 @@ async function main() {
   };
 
   const steeringBoidsOptions = {};
-
-  const screenBoundsOptions = {
-    marginX: 100,
-    marginY: 100,
-    originTurnFactor: 25.0,
-  };
 
   const onExpiration = (eid) => {
     if (hasComponent(world, Tombstone, eid)) return;
@@ -92,6 +101,7 @@ async function main() {
       headingAndSpeedSystem(),
       movementSystem(),
       positionIndexSystem(),
+      collisionSystem(),
       expirationSystem(onExpiration),
       tweakPaneUpdateSystem({ pane })
     ),
@@ -107,13 +117,16 @@ async function main() {
     stats
   );
 
-  Object.assign(window, { world, positionIndexService });
+  Object.assign(window, {
+    world,
+    positionIndexService,
+    collisionService,
+    Collidable,
+  });
   console.log("READY.");
 }
 
 const tweakPaneUpdateSystem = ({ pane }) => {
-  const f = pane.addFolder({ title: document.title, expanded: true });
-
   return (world) => {
     pane.refresh();
     return world;
@@ -149,8 +162,12 @@ const spawnBoid = (world) => {
   const y = 800 * Math.sin(angle);
 
   return BoidEntity.spawn(world)
-    .add({ Expiration, SteeringBoid, AvoidScreenBounds })
+    .add({ Expiration, SteeringBoid, AvoidScreenBounds, Collidable })
     .set({
+      Collidable: {
+        group: 1,
+        radius: 50,
+      },
       SteeringBoid: {
         maxSpeed: 200,
         acceleration: 2,
@@ -164,14 +181,14 @@ const spawnBoid = (world) => {
         fleeX: 0,
         fleeY: 0,
 
-        wanderForce: 0,
+        wanderForce: 5,
         wanderDistance: 20,
         wanderRadius: 10,
 
-        avoidObstaclesForce: 10,
+        avoidObstaclesForce: 15,
         avoidObstaclesGroups: [1],
         avoidObstaclesRange: 100,
-      
+
         avoidBorderForce: 50,
         originX: 0,
         originY: 0,

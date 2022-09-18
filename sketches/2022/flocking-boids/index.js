@@ -17,7 +17,10 @@ import {
   expirationSystem,
   Tombstone,
 } from "../../../lib/Expiration.js";
-import { AvoidScreenBounds, screenBoundsSystem } from "../../../lib/ScreenBounds.js";
+import {
+  AvoidScreenBounds,
+  screenBoundsSystem,
+} from "../../../lib/ScreenBounds.js";
 import { spawnerSystem } from "../../../lib/Spawner.js";
 import { BoidEntity, BoidSprite } from "../../../lib/Boid.js";
 import {
@@ -34,6 +37,10 @@ const MAX_BOIDS = 200;
 async function main() {
   const world = World.init();
   const stats = Stats.init();
+
+  const pane = new Pane();
+  const rootFolder = pane.addFolder({ title: document.title, expanded: true });
+  world.addToPane(rootFolder);
 
   const spawnerOptions = {
     entityQuery: BoidEntity.query,
@@ -52,7 +59,7 @@ async function main() {
     matchingFactor: 0.05,
   };
 
-  const { pane, rootFolder } = setupTweakPane({
+  addToPane(rootFolder, {
     spawnerOptions,
     flockingBoidsOptions,
   });
@@ -87,51 +94,45 @@ async function main() {
   console.log("READY.");
 }
 
-function setupTweakPane({ spawnerOptions, flockingBoidsOptions }) {
-  const pane = new Pane();
-  const rootFolder = pane.addFolder({ title: document.title, expanded: true });
-
-  rootFolder.addInput(flockingBoidsOptions, "visualRange", {
+function addToPane(rootFolder, { spawnerOptions, flockingBoidsOptions }) {
+  const f = rootFolder.addFolder({ title: "options", expanded: true });
+  f.addInput(flockingBoidsOptions, "visualRange", {
     min: 5,
     max: 200,
     step: 1,
   });
-  rootFolder.addInput(flockingBoidsOptions, "visualEntityLimit", {
+  f.addInput(flockingBoidsOptions, "visualEntityLimit", {
     min: 3,
     max: 12,
     step: 1,
   });
-  rootFolder.addInput(flockingBoidsOptions, "centeringFactor", {
+  f.addInput(flockingBoidsOptions, "centeringFactor", {
     min: 0.001,
     max: 1.0,
     step: 0.001,
   });
-  rootFolder.addInput(flockingBoidsOptions, "avoidFactor", {
+  f.addInput(flockingBoidsOptions, "avoidFactor", {
     min: 0.01,
     max: 1.0,
     step: 0.01,
   });
-  rootFolder.addInput(flockingBoidsOptions, "avoidMinDistance", {
+  f.addInput(flockingBoidsOptions, "avoidMinDistance", {
     min: 5,
     max: 100,
     step: 1,
   });
-  rootFolder.addInput(flockingBoidsOptions, "matchingFactor", {
+  f.addInput(flockingBoidsOptions, "matchingFactor", {
     min: 0.01,
     max: 1.0,
     step: 0.01,
   });
-
-  rootFolder.addInput(spawnerOptions, "maxEntities", { min: 10, max: 1000 });
-
-  return { pane, rootFolder };
+  f.addInput(spawnerOptions, "maxEntities", { min: 10, max: 1000 });
 }
 
 const tweakPaneUpdateSystem = (pane, rootFolder) => {
-  const watch = {
-    boidsCount: 0,
-  };
-  Object.keys(watch).forEach((name) => rootFolder.addMonitor(watch, name));
+  const f = rootFolder.addFolder({ title: "stats", expanded: true });
+  const watch = { boidsCount: 0 };
+  Object.keys(watch).forEach((name) => f.addMonitor(watch, name));
 
   return (world) => {
     watch.boidsCount = BoidEntity.query(world).length;
