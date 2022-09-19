@@ -87,7 +87,8 @@ export const steeringBoidsSystem = (options = {}) => {
 
       // Face in the direction of the "intended" vector
       // TODO: This is really abrupt - find a way to smooth it?
-      Position.r[eid] = Math.atan2(forceVector.y, forceVector.x);
+      // Position.r[eid] = Math.atan2(forceVector.y, forceVector.x);
+      Position.r[eid] = Math.atan2(velocity.y, velocity.x);
     }
 
     return world;
@@ -134,7 +135,7 @@ export const steeringBoidsSystem = (options = {}) => {
   const avoidObstaclesVector = new Vector2D();
   const avoidObstaclesPushVector = new Vector2D();
   const avoidObstacles = (
-    { avoidObstaclesForce, avoidObstaclesRadius, avoidObstaclesRange },
+    { avoidObstaclesForce, avoidObstaclesRadius },
     world,
     eid
   ) => {
@@ -158,7 +159,7 @@ export const steeringBoidsSystem = (options = {}) => {
         position.distanceTo(otherPosition) -
         otherObstacle.radius -
         avoidObstaclesRadius;
-      const distanceFactor = distanceTo == 0 ? 1 / distanceTo : 1;
+      const distanceFactor = distanceTo == 0 ? 1 / Math.pow(distanceTo, 2) : 1;
 
       avoidObstaclesPushVector
         .copy(position)
@@ -238,7 +239,7 @@ function findNearbyObstacles(
   velocity,
   steeringBoid,
   otherObstacle,
-  otherPosition,
+  otherPosition
 ) {
   const heading = velocity.angle();
 
@@ -293,7 +294,7 @@ export const steeringBoidsDebugRenderer = (options = {}) => {
       );
       for (const otherEid of nearbyEids) {
         setEid(otherEid, otherPosition, otherObstacle, otherVelocity);
-        g.lineStyle(2.0, 0xff22ff, 0.5);
+        g.lineStyle(2.0, 0xff22ff, 0.25);
 
         g.moveTo(position.x, position.y);
         g.lineTo(otherPosition.x, otherPosition.y);

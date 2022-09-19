@@ -110,16 +110,7 @@ async function main() {
     }
   });
 
-  const target = BoidEntity.spawn(world).set({
-    Position: { x: 0, y: 0, r: Math.PI },
-    Velocity: { x: 0, y: 0 },
-    SpriteOptions: {
-      scaleX: 0.5,
-      scaleY: 0.5,
-      lineWidth: 2.0,
-      color: 0x33ff33,
-    },
-  });
+  spawnTarget(world, 0, 0);
 
   world.run(
     pipe(
@@ -199,6 +190,7 @@ const spawnBoid = (world) => {
       Expiration,
       SteeringBoid,
       AvoidScreenBounds,
+      Obstacle,
       Collidable,
       Bounce,
       GoalPosition,
@@ -206,8 +198,8 @@ const spawnBoid = (world) => {
     .set({
       SteeringBoid: {
         maxSpeed: 200,
-        acceleration: 2,
-        braking: 2,
+        acceleration: 10,
+        braking: 10,
 
         seekForce: 10,
         seekX: 0,
@@ -217,13 +209,13 @@ const spawnBoid = (world) => {
         fleeX: 0,
         fleeY: 0,
 
-        wanderForce: 7,
-        wanderDistance: 20,
-        wanderRadius: 20,
+        wanderForce: 5,
+        wanderDistance: 10,
+        wanderRadius: 10,
 
-        avoidObstaclesForce: 15,
-        avoidObstaclesRange: 100,
-        avoidObstaclesRadius: 15,
+        avoidObstaclesForce: 20,
+        avoidObstaclesRange: 75,
+        avoidObstaclesRadius: 10,
         avoidObstaclesGroups: [1],
         avoidObstaclesViewAngle: 1.5,
 
@@ -234,10 +226,10 @@ const spawnBoid = (world) => {
         marginY: 75,
       },
       Position: { x: x, y: y, r: 0 },
-      GoalPosition: { x: 0, y: 0, threshold: 25 },
+      GoalPosition: { x: 0, y: 0, threshold: 50 },
       Velocity: { x: 50, y: 0 },
       SpriteOptions: { scaleX: 0.125, scaleY: 0.125, lineWidth: 10.0, color },
-      Expiration: { timeToLive: 20 + Math.random() * 20.0 },
+      Expiration: { timeToLive: 5 + Math.random() * 20.0 },
       Obstacle: { groups: [1], radius: 10 },
       Collidable: { group: 1, radius: 10 },
       Bounce: { mass: 10 },
@@ -264,7 +256,25 @@ const spawnAsteroid = (world, x, y) => {
       SpriteOptions: { scaleX: 0.5, scaleY: 0.5, lineWidth: 2.0 },
       Obstacle: { groups: [1], radius: 25 },
       Collidable: { group: 1, radius: 25 },
-      Bounce: { mass: 100 },
+      Bounce: { mass: 50000 },
+    });
+};
+
+const spawnTarget = (world, x, y) => {
+  return BoidEntity.spawn(world)
+    .add({ Obstacle, Collidable, Bounce })
+    .set({
+      Position: { x: 0, y: 0, r: -Math.PI / 2 },
+      Velocity: { x: 0, y: 0 },
+      SpriteOptions: {
+        scaleX: 0.5,
+        scaleY: 0.5,
+        lineWidth: 2.0,
+        color: 0x33ff33,
+      },
+      Obstacle: { groups: [1], radius: 25 },
+      Collidable: { group: 1, radius: 25 },
+      Bounce: { mass: 10000000 },
     });
 };
 
