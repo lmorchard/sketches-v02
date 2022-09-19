@@ -256,7 +256,7 @@ const spawnAsteroid = (world, x, y) => {
       SpriteOptions: { scaleX: 0.5, scaleY: 0.5, lineWidth: 2.0 },
       Obstacle: { groups: [1], radius: 25 },
       Collidable: { group: 1, radius: 25 },
-      Bounce: { mass: 50000 },
+      Bounce: { mass: 1000 },
     });
 };
 
@@ -274,7 +274,7 @@ const spawnTarget = (world, x, y) => {
       },
       Obstacle: { groups: [1], radius: 25 },
       Collidable: { group: 1, radius: 25 },
-      Bounce: { mass: 10000000 },
+      Bounce: { mass: 100000 },
     });
 };
 
