@@ -1,4 +1,4 @@
-import { pipe, hasComponent, defineQuery } from "bitecs";
+import { pipe, hasComponent, defineQuery, removeEntity } from "bitecs";
 import { Pane } from "tweakpane";
 import * as World from "../../../lib/core/world.js";
 import * as Stats from "../../../lib/core/stats.js";
@@ -11,7 +11,6 @@ import {
 import { spritesRenderer } from "../../../lib/core/sprites.js";
 import { hslToRgb } from "../../../lib/utils/hslToRgb.js";
 import { BoidEntity, BoidSprite } from "../../../lib/Boid.js";
-import { headingAndSpeedSystem } from "../../../lib/HeadingAndSpeed.js";
 import { Wanderer, wandererSystem } from "../../../lib/Wanderer.js";
 import { HeadingAndSpeed } from "../../../lib/HeadingAndSpeed.js";
 import { spawnerSystem } from "../../../lib/Spawner.js";
@@ -30,7 +29,7 @@ import {
   SteeringBoid,
   Obstacle,
   steeringBoidsSystem,
-  steeringBoidsDebugRendererSystem,
+  steeringBoidsDebugRenderer,
 } from "./SteeringBoid.js";
 import { AsteroidEntity, AsteroidSprite } from "../../../lib/Asteroid.js";
 import {
@@ -40,22 +39,27 @@ import {
 import {
   collisionService,
   collisionSystem,
-  collisionDebugRendererSystem,
+  collisionDebugRenderer,
   Collidable,
 } from "../../../lib/Collisions.js";
+import {
+  Bounce,
+  bounceSystem,
+  bounceDebugRenderer,
+} from "../../../lib/Bouncer.js";
+import { GoalPosition, goalPositionSystem } from "../../../lib/GoalPosition.js";
 
 import "../../../index.css";
 
 const NUM_WANDERERS = 0; // 10;
 const NUM_ASTEROIDS = 10;
-const MAX_BOIDS = 50;
+const MAX_BOIDS = 25;
 
 /*
 TODO:
 - reimplement bouncer system!
 
 - abstract world.stage from autoSizedRenderer behind a symbol and a service
-- start adding debug draw to collision avoidance?
 - create a time service for accessing world-stored timers?
 */
 
@@ -84,13 +88,18 @@ async function main() {
     spawnTombstoneForBoid(world, eid);
   };
 
+  const onGoalPositionMet = (world, eid) => {
+    spawnTombstoneForBoid(world, eid);
+    removeEntity(world, eid);
+  };
+
   const wanderers = [];
   for (let idx = 0; idx < NUM_WANDERERS; idx++) {
     wanderers.push(spawnWanderer(world));
   }
 
   const asteroids = [];
-  [425, 375, 275, 175].forEach((spawnDistance) => {
+  [/*425, */ 375, 275, 175].forEach((spawnDistance) => {
     let angle = 0;
     const angleStep = (Math.PI * 2) / NUM_ASTEROIDS;
     for (let idx = 0; idx < NUM_ASTEROIDS; idx++) {
@@ -101,17 +110,28 @@ async function main() {
     }
   });
 
+  const target = BoidEntity.spawn(world).set({
+    Position: { x: 0, y: 0, r: Math.PI },
+    Velocity: { x: 0, y: 0 },
+    SpriteOptions: {
+      scaleX: 0.5,
+      scaleY: 0.5,
+      lineWidth: 2.0,
+      color: 0x33ff33,
+    },
+  });
+
   world.run(
     pipe(
       spawnerSystem(spawnerOptions),
-      steeringBoidsSystem(steeringBoidsOptions),
       explosionsUpdateSystem(),
-      wandererSystem(),
-      headingAndSpeedSystem(),
-      movementSystem(),
       positionIndexSystem(),
       collisionSystem(),
+      steeringBoidsSystem(steeringBoidsOptions),
+      bounceSystem(),
+      movementSystem(),
       expirationSystem(onExpiration),
+      goalPositionSystem(onGoalPositionMet),
       tweakPaneUpdateSystem({ pane })
     ),
     pipe(
@@ -122,8 +142,9 @@ async function main() {
         [ExplosionEntity, ExplosionSprite],
         [AsteroidEntity, AsteroidSprite],
       ]),
-      collisionDebugRendererSystem(),
-      steeringBoidsDebugRendererSystem()
+      collisionDebugRenderer(),
+      steeringBoidsDebugRenderer(),
+      bounceDebugRenderer()
     ),
     stats
   );
@@ -174,7 +195,14 @@ const spawnBoid = (world) => {
   const color = hslToRgb(Math.random(), 1.0, 0.5);
 
   return BoidEntity.spawn(world)
-    .add({ Expiration, SteeringBoid, AvoidScreenBounds, Collidable })
+    .add({
+      Expiration,
+      SteeringBoid,
+      AvoidScreenBounds,
+      Collidable,
+      Bounce,
+      GoalPosition,
+    })
     .set({
       SteeringBoid: {
         maxSpeed: 200,
@@ -205,11 +233,14 @@ const spawnBoid = (world) => {
         marginX: 75,
         marginY: 75,
       },
-      Velocity: { x: 50, y: 0 },
       Position: { x: x, y: y, r: 0 },
-      Expiration: { timeToLive: Math.random() * 15.0 },
-      Collidable: { group: 1, radius: 10 },
+      GoalPosition: { x: 0, y: 0, threshold: 25 },
+      Velocity: { x: 50, y: 0 },
       SpriteOptions: { scaleX: 0.125, scaleY: 0.125, lineWidth: 10.0, color },
+      Expiration: { timeToLive: 20 + Math.random() * 20.0 },
+      Obstacle: { groups: [1], radius: 10 },
+      Collidable: { group: 1, radius: 10 },
+      Bounce: { mass: 10 },
     });
 };
 
@@ -226,13 +257,14 @@ const spawnTombstoneForBoid = (world, eid) => {
 
 const spawnAsteroid = (world, x, y) => {
   return AsteroidEntity.spawn(world)
-    .add({ Obstacle, Collidable })
+    .add({ Obstacle, Collidable, Bounce })
     .set({
       Position: { x, y },
       Velocity: { r: Math.PI * (-0.5 + 1.0 * Math.random()) },
       SpriteOptions: { scaleX: 0.5, scaleY: 0.5, lineWidth: 2.0 },
       Obstacle: { groups: [1], radius: 25 },
-      Collidable: { group: 1, radius: 20 },
+      Collidable: { group: 1, radius: 25 },
+      Bounce: { mass: 100 },
     });
 };
 

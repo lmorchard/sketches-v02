@@ -50,6 +50,8 @@ export const flockingBoidsSystem = (options = {}) => {
       applyCoherence(nearbyEids, centeringFactor);
       applySeparation(nearbyEids, avoidFactor, avoidMinDistance);
       applyAlignment(nearbyEids, matchingFactor);
+
+      position.r = Math.atan2(velocity.y, velocity.x);
     }
     return world;
   };

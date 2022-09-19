@@ -11,6 +11,7 @@ export const Obstacle = defineComponent({
   groups: [Types.ui8, MAX_OBSTACLE_GROUPS],
 });
 
+// TODO: split this enormous component into separate per-behavior components!
 export const SteeringBoid = defineComponent({
   // mass: Types.f32,
 
@@ -83,6 +84,10 @@ export const steeringBoidsSystem = (options = {}) => {
       // Add the steering force to the velocity but maintain previous speed
       const speed = velocity.length();
       velocity.add(forceVector).truncate(speed);
+
+      // Face in the direction of the "intended" vector
+      // TODO: This is really abrupt - find a way to smooth it?
+      Position.r[eid] = Math.atan2(forceVector.y, forceVector.x);
     }
 
     return world;
@@ -261,7 +266,7 @@ function findNearbyObstacles(
     });
 }
 
-export const steeringBoidsDebugRendererSystem = (options = {}) => {
+export const steeringBoidsDebugRenderer = (options = {}) => {
   const steeringBoid = new GenericComponentProxy(SteeringBoid);
   const position = new Vector2DComponentProxy(Position);
   const velocity = new Vector2DComponentProxy(Velocity);
