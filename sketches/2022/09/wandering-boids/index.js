@@ -1,20 +1,20 @@
 import { pipe } from "bitecs";
-import * as World from "../../../lib/core/world.js";
-import * as Stats from "../../../lib/core/stats.js";
+import * as World from "../../../../lib/core/world.js";
+import * as Stats from "../../../../lib/core/stats.js";
 import { Pane } from "tweakpane";
-import { autoSizedRenderer, gridRenderer } from "../../../lib/viewport/pixi.js";
-import { movementSystem } from "../../../lib/positionMotion.js";
-import { hslToRgb } from "../../../lib/utils/hslToRgb";
+import { autoSizedRenderer, gridRenderer } from "../../../../lib/viewport/pixi.js";
+import { movementSystem } from "../../../../lib/positionMotion.js";
+import { hslToRgb } from "../../../../lib/utils/hslToRgb";
 import {
   BoidEntity,
   boidsUpdateSystem,
   boidsRenderer,
-} from "../../../lib/Boid.js";
-import { headingAndSpeedSystem } from "../../../lib/HeadingAndSpeed.js";
-import { Wanderer, wandererSystem } from "../../../lib/Wanderer.js";
-import { HeadingAndSpeed } from "../../../lib/HeadingAndSpeed.js";
+} from "../../../../lib/Boid.js";
+import { headingAndSpeedSystem } from "../../../../lib/HeadingAndSpeed.js";
+import { Wanderer, wandererSystem } from "../../../../lib/Wanderer.js";
+import { HeadingAndSpeed } from "../../../../lib/HeadingAndSpeed.js";
 
-import "../../../index.css";
+import "../../../../index.css";
 
 const NUM_WANDERERS = 100;
 

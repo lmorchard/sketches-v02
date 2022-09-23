@@ -1,8 +1,8 @@
-import { Position, Velocity } from "../../../lib/positionMotion.js";
+import { Position, Velocity } from "../../../../lib/positionMotion.js";
 import { defineQuery, defineComponent, Types } from "bitecs";
-import { GenericComponentProxy, setEid } from "../../../lib/core/entities.js";
-import { distanceSq } from "../../../lib/utils/utils.js";
-import { positionIndexService } from "../../../lib/PositionIndex.js";
+import { GenericComponentProxy, setEid } from "../../../../lib/core/entities.js";
+import { distanceSq } from "../../../../lib/utils/utils.js";
+import { positionIndexService } from "../../../../lib/PositionIndex.js";
 
 export const FlockingBoid = defineComponent({
   flockGroup: Types.ui32,

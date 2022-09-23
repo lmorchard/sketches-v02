@@ -1,36 +1,36 @@
 import { pipe, hasComponent } from "bitecs";
 import { Pane } from "tweakpane";
-import * as World from "../../../lib/core/world.js";
-import * as Stats from "../../../lib/core/stats.js";
-import { autoSizedRenderer, gridRenderer } from "../../../lib/viewport/pixi.js";
-import { hslToRgb } from "../../../lib/utils/hslToRgb.js";
+import * as World from "../../../../lib/core/world.js";
+import * as Stats from "../../../../lib/core/stats.js";
+import { autoSizedRenderer, gridRenderer } from "../../../../lib/viewport/pixi.js";
+import { hslToRgb } from "../../../../lib/utils/hslToRgb.js";
 import {
   Position,
   Velocity,
   movementSystem,
-} from "../../../lib/positionMotion.js";
-import { spritesRenderer } from "../../../lib/core/sprites.js";
-import { SeekSpeed, seekSpeedSystem } from "../../../lib/SeekSpeed.js";
+} from "../../../../lib/positionMotion.js";
+import { spritesRenderer } from "../../../../lib/core/sprites.js";
+import { SeekSpeed, seekSpeedSystem } from "../../../../lib/SeekSpeed.js";
 import { FlockingBoid, flockingBoidsSystem } from "./FlockingBoid.js";
 import {
   Expiration,
   expirationSystem,
   Tombstone,
-} from "../../../lib/Expiration.js";
+} from "../../../../lib/Expiration.js";
 import {
   AvoidScreenBounds,
   screenBoundsSystem,
-} from "../../../lib/ScreenBounds.js";
-import { spawnerSystem } from "../../../lib/Spawner.js";
-import { BoidEntity, BoidSprite } from "../../../lib/Boid.js";
+} from "../../../../lib/ScreenBounds.js";
+import { spawnerSystem } from "../../../../lib/Spawner.js";
+import { BoidEntity, BoidSprite } from "../../../../lib/Boid.js";
 import {
   ExplosionEntity,
   ExplosionSprite,
   explosionsUpdateSystem,
-} from "../../../lib/Explosion.js";
-import { positionIndexSystem } from "../../../lib/PositionIndex.js";
+} from "../../../../lib/Explosion.js";
+import { positionIndexSystem } from "../../../../lib/PositionIndex.js";
 
-import "../../../index.css";
+import "../../../../index.css";
 
 const MAX_BOIDS = 200;
 

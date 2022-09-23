@@ -1,13 +1,13 @@
-import { Position, Velocity } from "../../../lib/positionMotion";
+import { Position, Velocity } from "../../../../lib/positionMotion";
 import { defineQuery, defineComponent, hasComponent, Types } from "bitecs";
 import {
   BaseEntityProxy,
   GenericComponentProxy,
   setEid,
-} from "../../../lib/core/entities.js";
-import { Vector2D } from "../../../lib/utils/vector.js";
-import { Vector2DComponentProxy } from "../../../lib/utils/VectorComponentProxy.js";
-import { positionIndexService } from "../../../lib/PositionIndex.js";
+} from "../../../../lib/core/entities.js";
+import { Vector2D } from "../../../../lib/utils/vector.js";
+import { Vector2DComponentProxy } from "../../../../lib/utils/VectorComponentProxy.js";
+import { positionIndexService } from "../../../../lib/PositionIndex.js";
 
 const MAX_OBSTACLE_GROUPS = 4;
 export const Obstacle = defineComponent({

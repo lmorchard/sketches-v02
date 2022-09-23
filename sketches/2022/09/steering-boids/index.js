@@ -1,29 +1,29 @@
 import { pipe, hasComponent, defineQuery, removeEntity } from "bitecs";
 import { Pane } from "tweakpane";
-import * as World from "../../../lib/core/world.js";
-import * as Stats from "../../../lib/core/stats.js";
-import { autoSizedRenderer, gridRenderer } from "../../../lib/viewport/pixi.js";
+import * as World from "../../../../lib/core/world.js";
+import * as Stats from "../../../../lib/core/stats.js";
+import { autoSizedRenderer, gridRenderer } from "../../../../lib/viewport/pixi.js";
 import {
   Position,
   Velocity,
   movementSystem,
-} from "../../../lib/positionMotion.js";
-import { spritesRenderer } from "../../../lib/core/sprites.js";
-import { hslToRgb } from "../../../lib/utils/hslToRgb.js";
-import { BoidEntity, BoidSprite } from "../../../lib/Boid.js";
-import { Wanderer, wandererSystem } from "../../../lib/Wanderer.js";
-import { HeadingAndSpeed } from "../../../lib/HeadingAndSpeed.js";
-import { spawnerSystem } from "../../../lib/Spawner.js";
+} from "../../../../lib/positionMotion.js";
+import { spritesRenderer } from "../../../../lib/core/sprites.js";
+import { hslToRgb } from "../../../../lib/utils/hslToRgb.js";
+import { BoidEntity, BoidSprite } from "../../../../lib/Boid.js";
+import { Wanderer, wandererSystem } from "../../../../lib/Wanderer.js";
+import { HeadingAndSpeed } from "../../../../lib/HeadingAndSpeed.js";
+import { spawnerSystem } from "../../../../lib/Spawner.js";
 import {
   Expiration,
   expirationSystem,
   Tombstone,
-} from "../../../lib/Expiration.js";
+} from "../../../../lib/Expiration.js";
 import {
   ExplosionEntity,
   ExplosionSprite,
   explosionsUpdateSystem,
-} from "../../../lib/Explosion.js";
+} from "../../../../lib/Explosion.js";
 import {
   Steering,
   MaintainSpeed,
@@ -36,25 +36,25 @@ import {
   steeringSystem,
   steeringBoidsDebugRenderer,
 } from "./SteeringBoid.js";
-import { AsteroidEntity, AsteroidSprite } from "../../../lib/Asteroid.js";
+import { AsteroidEntity, AsteroidSprite } from "../../../../lib/Asteroid.js";
 import {
   positionIndexService,
   positionIndexSystem,
-} from "../../../lib/PositionIndex.js";
+} from "../../../../lib/PositionIndex.js";
 import {
   collisionService,
   collisionSystem,
   collisionDebugRenderer,
   Collidable,
-} from "../../../lib/Collisions.js";
+} from "../../../../lib/Collisions.js";
 import {
   Bounce,
   bounceSystem,
   bounceDebugRenderer,
-} from "../../../lib/Bouncer.js";
-import { GoalPosition, goalPositionSystem } from "../../../lib/GoalPosition.js";
+} from "../../../../lib/Bouncer.js";
+import { GoalPosition, goalPositionSystem } from "../../../../lib/GoalPosition.js";
 
-import "../../../index.css";
+import "../../../../index.css";
 
 /*
 TODO:
