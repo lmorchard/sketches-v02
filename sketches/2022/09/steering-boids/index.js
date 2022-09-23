@@ -35,7 +35,7 @@ import {
   Obstacle,
   steeringSystem,
   steeringBoidsDebugRenderer,
-} from "./SteeringBoid.js";
+} from "../../../../lib/Steering.js";
 import { AsteroidEntity, AsteroidSprite } from "../../../../lib/Asteroid.js";
 import {
   positionIndexService,
