@@ -25,7 +25,7 @@ import {
   explosionsUpdateSystem,
 } from "../../../lib/Explosion.js";
 import {
-  SteeringBoid,
+  Steering,
   MaintainSpeed,
   Seek,
   Flee,
@@ -33,7 +33,7 @@ import {
   AvoidObstacles,
   AvoidBorder,
   Obstacle,
-  steeringBoidsSystem,
+  steeringSystem,
   steeringBoidsDebugRenderer,
 } from "./SteeringBoid.js";
 import { AsteroidEntity, AsteroidSprite } from "../../../lib/Asteroid.js";
@@ -77,7 +77,7 @@ async function main() {
   world.addToPane(paneRoot);
 
   const spawnerOptions = {
-    entityQuery: defineQuery([Expiration, SteeringBoid]),
+    entityQuery: defineQuery([Expiration, Steering]),
     spawnEntity: spawnBoid,
     maxEntities: MAX_BOIDS,
     maxPerFrame: 20,
@@ -121,7 +121,7 @@ async function main() {
       explosionsUpdateSystem(),
       positionIndexSystem(),
       collisionSystem(),
-      steeringBoidsSystem(steeringBoidsOptions),
+      steeringSystem(steeringBoidsOptions),
       bounceSystem(),
       movementSystem(),
       expirationSystem(onExpiration),
@@ -191,7 +191,7 @@ const spawnBoid = (world) => {
   return BoidEntity.spawn(world)
     .add({
       Expiration,
-      SteeringBoid,
+      Steering,
       MaintainSpeed,
       Seek,
       Flee,

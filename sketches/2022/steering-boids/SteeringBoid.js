@@ -1,6 +1,6 @@
 import { Position, Velocity } from "../../../lib/positionMotion";
 import { defineQuery, defineComponent, hasComponent, Types } from "bitecs";
-import { GenericComponentProxy, setEid } from "../../../lib/core/entities.js";
+import { BaseEntityProxy, GenericComponentProxy, setEid } from "../../../lib/core/entities.js";
 import { Vector2D } from "../../../lib/utils/vector.js";
 import { Vector2DComponentProxy } from "../../../lib/utils/VectorComponentProxy.js";
 import { positionIndexService } from "../../../lib/PositionIndex.js";
@@ -12,7 +12,7 @@ export const Obstacle = defineComponent({
 });
 
 // TODO: split this enormous component into separate per-behavior components!
-export const SteeringBoid = defineComponent();
+export const Steering = defineComponent();
 
 export const MaintainSpeed = defineComponent({
   maxSpeed: Types.f32,
@@ -54,20 +54,30 @@ export const AvoidBorder = defineComponent({
   marginY: Types.f32,
 });
 
-export const steeringBoidsQuery = defineQuery([
-  SteeringBoid,
+export class SteeringEntity extends BaseEntityProxy {
+  static components = {
+    Position,
+    Velocity,
+    Steering,
+    MaintainSpeed,
+    Seek,
+    Flee,
+    Wander,
+    AvoidObstacles,
+    AvoidBorder,
+  };
+}
+
+export const steeringQuery = defineQuery([
+  Steering,
   Position,
   Velocity,
 ]);
 
-export const steeringBoidsSystem = (options = {}) => {
-  const steeringBoid = new GenericComponentProxy(SteeringBoid);
-  const maintainSpeed = new GenericComponentProxy(MaintainSpeed);
-  const flee = new GenericComponentProxy(Flee);
-  const seek = new GenericComponentProxy(Seek);
-  const wander = new GenericComponentProxy(Wander);
-  const avoidBorder = new GenericComponentProxy(AvoidBorder);
-  const avoidObstacles = new GenericComponentProxy(AvoidObstacles);
+export const steeringSystem = (options = {}) => {
+  const steeringEntity = new SteeringEntity();
+
+  const steeringBoid = new GenericComponentProxy(Steering);
 
   const position = new Vector2DComponentProxy(Position);
   const velocity = new Vector2DComponentProxy(Velocity);
@@ -79,34 +89,30 @@ export const steeringBoidsSystem = (options = {}) => {
   const forceVector = new Vector2D();
 
   const main = (world) => {
-    for (const eid of steeringBoidsQuery(world)) {
+    for (const eid of steeringQuery(world)) {
+      steeringEntity.using(eid, world);
+
       setEid(
         eid,
         steeringBoid,
-        maintainSpeed,
-        seek,
-        flee,
-        wander,
-        avoidBorder,
-        avoidObstacles,
         position,
         velocity
       );
 
-      velocity.add(applyMaintainSpeed(maintainSpeed));
+      velocity.add(applyMaintainSpeed(steeringEntity.MaintainSpeed));
 
       // Accumulate all the steering behavior forces
       forceVector.copy(nullVector).add(
-        applySeek(seek, world, eid),
-        applyFlee(flee, world, eid),
+        applySeek(steeringEntity.Seek, world, eid),
+        applyFlee(steeringEntity.Flee, world, eid),
         // arrive
-        applyWander(wander, world, eid),
+        applyWander(steeringEntity.Wander, world, eid),
         // pursuit
         // evade
         // movement manager
         // collision avoidance
-        applyAvoidObstacles(avoidObstacles, world, eid),
-        applyAvoidBorder(avoidBorder, world, eid)
+        applyAvoidObstacles(steeringEntity.AvoidObstacles, world, eid),
+        applyAvoidBorder(steeringEntity.AvoidBorder, world, eid)
       );
 
       // Add the steering force to the velocity but maintain previous speed
@@ -143,7 +149,8 @@ export const steeringBoidsSystem = (options = {}) => {
 
   const wanderDisplacement = new Vector2D();
   const wanderVector = new Vector2D();
-  const applyWander = ({ force, distance, radius, angle }) => {
+  const applyWander = (wander) => {
+    const { force, distance, radius, angle } = wander;
     if (!force) return nullVector;
     wander.angle += Math.PI * (Math.random() * 0.25 - 0.125);
     wanderDisplacement.set(0, -1).scaleBy(radius).rotate(angle);
@@ -280,7 +287,6 @@ function findNearbyObstacles(
 }
 
 export const steeringBoidsDebugRenderer = (options = {}) => {
-  const steeringBoid = new GenericComponentProxy(SteeringBoid);
   const avoidObstacles = new GenericComponentProxy(AvoidObstacles);
   const position = new Vector2DComponentProxy(Position);
   const velocity = new Vector2DComponentProxy(Velocity);
@@ -292,8 +298,8 @@ export const steeringBoidsDebugRenderer = (options = {}) => {
     if (!world || !world.debug) return world;
     const g = world.debugGraphics;
 
-    for (const eid of steeringBoidsQuery(world)) {
-      setEid(eid, steeringBoid, avoidObstacles, position, velocity);
+    for (const eid of steeringQuery(world)) {
+      setEid(eid, avoidObstacles, position, velocity);
 
       // Debug obstacle avoidance
       const nearbyEids = findNearbyObstacles(
