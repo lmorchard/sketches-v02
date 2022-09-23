@@ -15,7 +15,6 @@ export const Obstacle = defineComponent({
   groups: [Types.ui8, MAX_OBSTACLE_GROUPS],
 });
 
-// TODO: split this enormous component into separate per-behavior components!
 export const Steering = defineComponent();
 
 export const MaintainSpeed = defineComponent({
@@ -80,10 +79,6 @@ export const steeringQuery = defineQuery([Steering, Position, Velocity]);
 
 export const steeringSystem = (options = {}) => {
   const steeringEntity = new SteeringEntity();
-  const otherSteeringEntity = new SteeringEntity();
-
-  const otherPosition = new Vector2DComponentProxy(Position);
-  const otherObstacle = new GenericComponentProxy(Obstacle);
 
   const nullVector = new Vector2D(0, 0);
   const otherVector = new Vector2D();
@@ -173,6 +168,8 @@ export const steeringSystem = (options = {}) => {
       .truncate(force);
   };
 
+  const otherPosition = new Vector2DComponentProxy(Position);
+  const otherObstacle = new GenericComponentProxy(Obstacle);
   const avoidObstaclesVector = new Vector2D();
   const avoidObstaclesPushVector = new Vector2D();
   const applyAvoidObstacles = () => {
