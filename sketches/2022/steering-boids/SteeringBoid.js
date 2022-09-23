@@ -92,31 +92,27 @@ export const steeringSystem = (options = {}) => {
   const main = (world) => {
     for (const eid of steeringQuery(world)) {
       steeringEntity.using(eid, world);
-      otherSteeringEntity.using(eid, world);
 
-      const { Velocity: velocity, Position: position } = steeringEntity;
+      const {
+        Velocity: velocity,
+        Position: position,
+        MaintainSpeed: maintainSpeed,
+      } = steeringEntity;
 
-      if (steeringEntity.MaintainSpeed.hasComponent()) {
-        velocity.add(applyMaintainSpeed(steeringEntity.MaintainSpeed));
+      if (maintainSpeed.hasComponent()) {
+        velocity.add(applyMaintainSpeed(steeringEntity));
       }
 
       // Accumulate all the steering behavior forces
       forceVector.copy(nullVector).add(
-        steeringEntity.Seek.hasComponent() &&
-          applySeek(steeringEntity.Seek, world, eid),
-        steeringEntity.Flee.hasComponent() &&
-          applyFlee(steeringEntity.Flee, world, eid),
+        applySeek(),
+        applyFlee(),
         // arrive
-        steeringEntity.Wander.hasComponent() &&
-          applyWander(steeringEntity.Wander, world, eid),
+        applyWander(),
         // pursuit
         // evade
-        // movement manager
-        // collision avoidance
-        steeringEntity.AvoidObstacles.hasComponent() &&
-          applyAvoidObstacles(steeringEntity.AvoidObstacles, world, eid),
-        steeringEntity.AvoidBorder.hasComponent() &&
-          applyAvoidBorder(steeringEntity.AvoidBorder, world, eid)
+        applyAvoidObstacles(),
+        applyAvoidBorder()
       );
 
       // Add the steering force to the velocity but maintain previous speed
@@ -133,9 +129,12 @@ export const steeringSystem = (options = {}) => {
   };
 
   const seekVector = new Vector2D();
-  const applySeek = ({ force, x, y }) => {
-    if (!force) return nullVector;
-    const { Position: position } = steeringEntity;
+  const applySeek = () => {
+    if (!steeringEntity.Seek.hasComponent()) return;
+    const {
+      Seek: { force, x, y },
+      Position: position,
+    } = steeringEntity;
     return seekVector
       .copy(otherVector.set(x, y))
       .subtract(position)
@@ -143,9 +142,12 @@ export const steeringSystem = (options = {}) => {
   };
 
   const fleeVector = new Vector2D();
-  const applyFlee = ({ force, x, y }) => {
-    if (!force) return nullVector;
-    const { Position: position } = steeringEntity;
+  const applyFlee = () => {
+    if (!steeringEntity.Flee.hasComponent()) return;
+    const {
+      Flee: { force, x, y },
+      Position: position,
+    } = steeringEntity;
     return fleeVector
       .copy(otherVector.set(x, y))
       .subtract(position)
@@ -155,11 +157,13 @@ export const steeringSystem = (options = {}) => {
 
   const wanderDisplacement = new Vector2D();
   const wanderVector = new Vector2D();
-  const applyWander = (wander) => {
-    const { force, distance, radius, angle } = wander;
-    if (!force) return nullVector;
-    const { Velocity: velocity } = steeringEntity;
-    wander.angle += Math.PI * (Math.random() * 0.25 - 0.125);
+  const applyWander = () => {
+    if (!steeringEntity.Wander.hasComponent()) return;
+    steeringEntity.Wander.angle += Math.PI * (Math.random() * 0.25 - 0.125);
+    const {
+      Wander: { force, distance, radius, angle },
+      Velocity: velocity,
+    } = steeringEntity;
     wanderDisplacement.set(0, -1).scaleBy(radius).rotate(angle);
     return wanderVector
       .clone(velocity)
@@ -171,11 +175,16 @@ export const steeringSystem = (options = {}) => {
 
   const avoidObstaclesVector = new Vector2D();
   const avoidObstaclesPushVector = new Vector2D();
-  const applyAvoidObstacles = (avoidObstacles, world, eid) => {
-    const { force, radius } = avoidObstacles;
-    if (!force) return nullVector;
-
-    const { Position: position, Velocity: velocity } = steeringEntity;
+  const applyAvoidObstacles = () => {
+    if (!steeringEntity.AvoidObstacles.hasComponent()) return;
+    const {
+      AvoidObstacles: { force, radius },
+      AvoidObstacles: avoidObstacles,
+      Position: position,
+      Velocity: velocity,
+      world,
+      eid,
+    } = steeringEntity;
 
     const nearbyEids = findNearbyObstacles(
       world,
@@ -209,16 +218,23 @@ export const steeringSystem = (options = {}) => {
   };
 
   const avoidBorderVector = new Vector2D();
-  const applyAvoidBorder = (
-    { originX = 0, originY = 0, marginX = 200, marginY = 200, force = 7.0 },
-    world
-  ) => {
-    if (!force) return nullVector;
-    const { Position: position } = steeringEntity;
-
+  const applyAvoidBorder = () => {
+    if (!steeringEntity.AvoidBorder.hasComponent()) return;
     const {
-      renderer: { width, height },
-    } = world;
+      Position: position,
+      AvoidBorder: {
+        originX = 0,
+        originY = 0,
+        marginX = 200,
+        marginY = 200,
+        force = 7.0,
+      },
+      world: {
+        renderer: { width, height },
+      },
+      eid,
+    } = steeringEntity;
+
     const hwidth = (width - marginX) / 2;
     const hheight = (height - marginY) / 2;
     const { x, y } = position;
@@ -238,9 +254,15 @@ export const steeringSystem = (options = {}) => {
   };
 
   const maintainMaxSpeedVector = new Vector2D();
-  const applyMaintainSpeed = ({ maxSpeed, acceleration, braking }) => {
+  const applyMaintainSpeed = () => {
+    if (!steeringEntity.MaintainSpeed.hasComponent()) return;
+
+    const {
+      MaintainSpeed: { maxSpeed, acceleration, braking },
+      Velocity: velocity,
+    } = steeringEntity;
+
     if (acceleration === 0 && braking === 0) return nullVector;
-    const { Velocity: velocity } = steeringEntity;
 
     const speed2 = velocity.lengthSquared();
     const maxSpeed2 = maxSpeed * maxSpeed;
