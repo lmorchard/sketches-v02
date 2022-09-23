@@ -12,32 +12,42 @@ export const Obstacle = defineComponent({
 });
 
 // TODO: split this enormous component into separate per-behavior components!
-export const SteeringBoid = defineComponent({
-  // mass: Types.f32,
+export const SteeringBoid = defineComponent();
 
+export const MaintainSpeed = defineComponent({
   maxSpeed: Types.f32,
   acceleration: Types.f32,
   braking: Types.f32,
+});
 
-  seekForce: Types.f32,
-  seekX: Types.f32,
-  seekY: Types.f32,
+export const Seek = defineComponent({
+  force: Types.f32,
+  x: Types.f32,
+  y: Types.f32,  
+});
 
-  fleeForce: Types.f32,
-  fleeX: Types.f32,
-  fleeY: Types.f32,
+export const Flee = defineComponent({
+  force: Types.f32,
+  x: Types.f32,
+  y: Types.f32,
+});
 
-  wanderForce: Types.f32,
-  wanderDistance: Types.f32,
-  wanderRadius: Types.f32,
-  wanderAngle: Types.f32,
+export const Wander = defineComponent({
+  force: Types.f32,
+  distance: Types.f32,
+  radius: Types.f32,
+  angle: Types.f32,
+});
 
-  avoidObstaclesForce: Types.f32,
-  avoidObstaclesGroups: [Types.ui8, MAX_OBSTACLE_GROUPS],
-  avoidObstaclesRange: Types.f32,
-  avoidObstaclesViewAngle: Types.f32,
+export const AvoidObstacles = defineComponent({
+  force: Types.f32,
+  groups: [Types.ui8, MAX_OBSTACLE_GROUPS],
+  range: Types.f32,
+  viewAngle: Types.f32,
+});
 
-  avoidBorderForce: Types.f32,
+export const AvoidBorder = defineComponent({
+  force: Types.f32,
   originX: Types.f32,
   originY: Types.f32,
   marginX: Types.f32,
@@ -52,6 +62,13 @@ export const steeringBoidsQuery = defineQuery([
 
 export const steeringBoidsSystem = (options = {}) => {
   const steeringBoid = new GenericComponentProxy(SteeringBoid);
+  const maintainSpeed = new GenericComponentProxy(MaintainSpeed);
+  const flee = new GenericComponentProxy(Flee);
+  const seek = new GenericComponentProxy(Seek);
+  const wander = new GenericComponentProxy(Wander);
+  const avoidBorder = new GenericComponentProxy(AvoidBorder);
+  const avoidObstacles = new GenericComponentProxy(AvoidObstacles);
+
   const position = new Vector2DComponentProxy(Position);
   const velocity = new Vector2DComponentProxy(Velocity);
   const otherPosition = new Vector2DComponentProxy(Position);
@@ -63,22 +80,33 @@ export const steeringBoidsSystem = (options = {}) => {
 
   const main = (world) => {
     for (const eid of steeringBoidsQuery(world)) {
-      setEid(eid, steeringBoid, position, velocity);
+      setEid(
+        eid,
+        steeringBoid,
+        maintainSpeed,
+        seek,
+        flee,
+        wander,
+        avoidBorder,
+        avoidObstacles,
+        position,
+        velocity
+      );
 
-      velocity.add(maintainMaxSpeed(steeringBoid));
+      velocity.add(applyMaintainSpeed(maintainSpeed));
 
       // Accumulate all the steering behavior forces
       forceVector.copy(nullVector).add(
-        seek(steeringBoid, world, eid),
-        flee(steeringBoid, world, eid),
+        applySeek(seek, world, eid),
+        applyFlee(flee, world, eid),
         // arrive
-        wander(steeringBoid, world, eid),
+        applyWander(wander, world, eid),
         // pursuit
         // evade
         // movement manager
         // collision avoidance
-        avoidObstacles(steeringBoid, world, eid),
-        avoidBorder(steeringBoid, world, eid)
+        applyAvoidObstacles(avoidObstacles, world, eid),
+        applyAvoidBorder(avoidBorder, world, eid)
       );
 
       // Add the steering force to the velocity but maintain previous speed
@@ -95,58 +123,50 @@ export const steeringBoidsSystem = (options = {}) => {
   };
 
   const seekVector = new Vector2D();
-  const seek = ({ seekForce, seekX, seekY }) => {
-    if (!seekForce) return nullVector;
+  const applySeek = ({ force, x, y }) => {
+    if (!force) return nullVector;
     return seekVector
-      .copy(otherVector.set(seekX, seekY))
+      .copy(otherVector.set(x, y))
       .subtract(position)
-      .truncate(seekForce);
+      .truncate(force);
   };
 
   const fleeVector = new Vector2D();
-  const flee = ({ fleeForce, fleeX, fleeY }) => {
-    if (!fleeForce) return nullVector;
+  const applyFlee = ({ force, x, y }) => {
+    if (!force) return nullVector;
     return fleeVector
-      .copy(otherVector.set(fleeX, fleeY))
+      .copy(otherVector.set(x, y))
       .subtract(position)
-      .truncate(fleeForce)
+      .truncate(force)
       .multiplyScalar(-1);
   };
 
   const wanderDisplacement = new Vector2D();
   const wanderVector = new Vector2D();
-  const wander = ({
-    wanderForce,
-    wanderDistance,
-    wanderRadius,
-    wanderAngle,
-  }) => {
-    if (!wanderForce) return nullVector;
-    steeringBoid.wanderAngle += Math.PI * (Math.random() * 0.25 - 0.125);
-    wanderDisplacement.set(0, -1).scaleBy(wanderRadius).rotate(wanderAngle);
+  const applyWander = ({ force, distance, radius, angle }) => {
+    if (!force) return nullVector;
+    wander.angle += Math.PI * (Math.random() * 0.25 - 0.125);
+    wanderDisplacement.set(0, -1).scaleBy(radius).rotate(angle);
     return wanderVector
       .clone(velocity)
       .normalize()
-      .scaleBy(wanderDistance)
+      .scaleBy(distance)
       .add(wanderDisplacement)
-      .truncate(wanderForce);
+      .truncate(force);
   };
 
   const avoidObstaclesVector = new Vector2D();
   const avoidObstaclesPushVector = new Vector2D();
-  const avoidObstacles = (
-    { avoidObstaclesForce, avoidObstaclesRadius },
-    world,
-    eid
-  ) => {
-    if (!avoidObstaclesForce) return nullVector;
+  const applyAvoidObstacles = (avoidObstacles, world, eid) => {
+    const { force, radius } = avoidObstacles;
+    if (!force) return nullVector;
 
     const nearbyEids = findNearbyObstacles(
       world,
       eid,
       position,
       velocity,
-      steeringBoid,
+      avoidObstacles,
       otherObstacle,
       otherPosition
     );
@@ -156,36 +176,28 @@ export const steeringBoidsSystem = (options = {}) => {
       setEid(otherEid, otherPosition, otherObstacle);
 
       const distanceTo =
-        position.distanceTo(otherPosition) -
-        otherObstacle.radius -
-        avoidObstaclesRadius;
+        position.distanceTo(otherPosition) - otherObstacle.radius - radius;
       const distanceFactor = distanceTo == 0 ? 1 / Math.pow(distanceTo, 2) : 1;
 
       avoidObstaclesPushVector
         .copy(position)
         .subtract(otherPosition)
         .normalize()
-        .scaleBy(avoidObstaclesForce)
+        .scaleBy(force)
         .scaleBy(distanceFactor);
 
       avoidObstaclesVector.add(avoidObstaclesPushVector);
     }
-    avoidObstaclesVector.truncate(avoidObstaclesForce);
+    avoidObstaclesVector.truncate(force);
     return avoidObstaclesVector;
   };
 
   const avoidBorderVector = new Vector2D();
-  const avoidBorder = (
-    {
-      originX = 0,
-      originY = 0,
-      marginX = 200,
-      marginY = 200,
-      avoidBorderForce = 7.0,
-    },
+  const applyAvoidBorder = (
+    { originX = 0, originY = 0, marginX = 200, marginY = 200, force = 7.0 },
     world
   ) => {
-    if (!avoidBorderForce) return nullVector;
+    if (!force) return nullVector;
 
     const {
       renderer: { width, height },
@@ -205,11 +217,11 @@ export const steeringBoidsSystem = (options = {}) => {
     return avoidBorderVector
       .copy(otherVector.set(originX, originY))
       .subtract(position)
-      .truncate(avoidBorderForce);
+      .truncate(force);
   };
 
   const maintainMaxSpeedVector = new Vector2D();
-  const maintainMaxSpeed = ({ maxSpeed, acceleration, braking }) => {
+  const applyMaintainSpeed = ({ maxSpeed, acceleration, braking }) => {
     if (acceleration === 0 && braking === 0) return nullVector;
 
     const speed2 = velocity.lengthSquared();
@@ -237,7 +249,7 @@ function findNearbyObstacles(
   eid,
   position,
   velocity,
-  steeringBoid,
+  avoidObstacles,
   otherObstacle,
   otherPosition
 ) {
@@ -245,7 +257,7 @@ function findNearbyObstacles(
 
   return positionIndexService
     .using(world)
-    .findNearestToEntity(eid, steeringBoid.avoidObstaclesRange)
+    .findNearestToEntity(eid, avoidObstacles.range)
     .filter((otherEid) => {
       // Skip if this entity isn't an obstacle.
       if (!hasComponent(world, Obstacle, otherEid)) return false;
@@ -253,7 +265,7 @@ function findNearbyObstacles(
 
       // Skip if this obstacle doesn't match any groups we're avoiding
       if (
-        steeringBoid.avoidObstaclesGroups.filter((group) =>
+        avoidObstacles.groups.filter((group) =>
           otherObstacle.groups.includes(group)
         ).length === 0
       )
@@ -263,12 +275,13 @@ function findNearbyObstacles(
       // TODO: is this actually a decent way to work out this angle?
       const obstacleHeading = position.angleTo(otherPosition);
       const angleToHeading = Math.abs(heading - obstacleHeading);
-      return angleToHeading < steeringBoid.avoidObstaclesViewAngle;
+      return angleToHeading < avoidObstacles.viewAngle;
     });
 }
 
 export const steeringBoidsDebugRenderer = (options = {}) => {
   const steeringBoid = new GenericComponentProxy(SteeringBoid);
+  const avoidObstacles = new GenericComponentProxy(AvoidObstacles);
   const position = new Vector2DComponentProxy(Position);
   const velocity = new Vector2DComponentProxy(Velocity);
   const otherPosition = new Vector2DComponentProxy(Position);
@@ -280,7 +293,7 @@ export const steeringBoidsDebugRenderer = (options = {}) => {
     const g = world.debugGraphics;
 
     for (const eid of steeringBoidsQuery(world)) {
-      setEid(eid, steeringBoid, position, velocity);
+      setEid(eid, steeringBoid, avoidObstacles, position, velocity);
 
       // Debug obstacle avoidance
       const nearbyEids = findNearbyObstacles(
@@ -288,7 +301,7 @@ export const steeringBoidsDebugRenderer = (options = {}) => {
         eid,
         position,
         velocity,
-        steeringBoid,
+        avoidObstacles,
         otherObstacle,
         otherPosition
       );
