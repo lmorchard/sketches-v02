@@ -35,6 +35,7 @@ import {
   bounceSystem,
   bounceDebugRenderer,
 } from "../../../../lib/Bouncer.js";
+import { Health, healthService, healthSystem, healthDebugRenderer } from "../../../../lib/Health.js";
 
 import { rngIntRange } from "../../../../lib/utils/utils.js";
 import { BrickEntity, BrickSprite } from "./Brick.js";
@@ -65,23 +66,22 @@ async function main() {
 
   world.run(
     pipe(
-      entityUpdater([[BrickEntity], [BallEntity]]),
+      healthSystem(),
       spawnerSystem({
         entityQuery: BallEntity.query,
         spawnEntity: spawnBall,
-        maxEntities: 50,
+        maxEntities: 10,
         maxPerFrame: 1,
         spawnDelay: 0,
       }),
+      entityUpdater([[BrickEntity], [BallEntity]]),
       ballOutOfBoundsSystem(),
       explosionsUpdateSystem(),
       positionIndexSystem(),
+      movementSystem(),
       collisionSystem(),
       steeringSystem(),
-      bounceSystem({
-        separationFactor: 7.0,
-      }),
-      movementSystem(),
+      bounceSystem({ separationFactor: 7.0 }),
       tweakPaneUpdateSystem({ pane })
     ),
     pipe(
@@ -89,9 +89,10 @@ async function main() {
       spritesRenderer([
         [BrickEntity, BrickSprite],
         [BallEntity, BallSprite],
+        [ExplosionEntity, ExplosionSprite],
       ]),
       gridRenderer(),
-
+      healthDebugRenderer(),
       collisionDebugRenderer(),
       steeringBoidsDebugRenderer(),
       bounceDebugRenderer()
@@ -135,7 +136,10 @@ const tweakPaneUpdateSystem = ({ pane }) => {
   };
 };
 
-function spawnBall(world, { ballSize = 10, startX = -400, maxX = 400, startY = 500 } = {}) {
+function spawnBall(
+  world,
+  { ballSize = 10, startX = -400, maxX = 400, startY = 500 } = {}
+) {
   const x = rngIntRange(Math.random, startX, maxX);
   const y = startY;
 
@@ -149,7 +153,7 @@ function spawnBall(world, { ballSize = 10, startX = -400, maxX = 400, startY = 5
       boxWidth: ballSize * 2,
       boxHeight: ballSize * 2,
     },
-});
+  });
 }
 
 function spawnBricks(

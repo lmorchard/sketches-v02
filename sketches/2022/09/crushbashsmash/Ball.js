@@ -1,10 +1,12 @@
-import { defineComponent, Types } from "bitecs";
+import { defineComponent, hasComponent, Types } from "bitecs";
 import { BaseEntityProxy } from "../../../../lib/core/entities.js";
-import { Collidable } from "../../../../lib/Collisions.js";
+import { Collidable, collisionService } from "../../../../lib/Collisions.js";
 import { Bounce } from "../../../../lib/Bouncer.js";
 import { Position, Velocity } from "../../../../lib/PositionMotion.js";
 import { SpriteOptions, BaseSprite } from "../../../../lib/core/sprites.js";
 import { Steering, Obstacle, MaintainSpeed } from "../../../../lib/Steering.js";
+import { Health, healthService } from "../../../../lib/Health.js";
+import { Brick } from "./Brick.js";
 
 export const Ball = defineComponent({
   radius: Types.f32,
@@ -21,6 +23,7 @@ export class BallEntity extends BaseEntityProxy {
     Obstacle,
     MaintainSpeed,
     Bounce,
+    Health,
   };
 
   static defaults = {
@@ -38,7 +41,22 @@ export class BallEntity extends BaseEntityProxy {
     MaintainSpeed: { maxSpeed: 300, acceleration: 50, braking: 50 },
     Collidable: { group: 1, radius: 10 },
     Bounce: { mass: 100, restitution: 0.9 },
+    Health: { max: 1000, current: 1000 },
   };
+
+  update(world) {
+    collisionService.using(world);
+    healthService.using(world);
+
+    const collisions = collisionService.get(this.eid);
+    if (collisions) {
+      for (const eid of collisions) {
+        if (hasComponent(world, Brick, eid)) {
+          healthService.hurt(eid, 25);
+        }
+      }  
+    }
+  }
 }
 
 export class BallSprite extends BaseSprite {

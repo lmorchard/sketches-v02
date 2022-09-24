@@ -5,6 +5,9 @@ import { Bounce } from "../../../../lib/Bouncer.js";
 import { Position, Velocity } from "../../../../lib/PositionMotion.js";
 import { SpriteOptions, BaseSprite } from "../../../../lib/core/sprites.js";
 import { Obstacle } from "../../../../lib/Steering.js";
+import { Health } from "../../../../lib/Health.js";
+import { ExplosionEntity } from "../../../../lib/Explosion.js";
+import { Expiration, Tombstone } from "../../../../lib/Expiration.js";
 
 export const Brick = defineComponent({
   width: Types.f32,
@@ -20,6 +23,7 @@ export class BrickEntity extends BaseEntityProxy {
     Collidable,
     Obstacle,
     Bounce,
+    Health,
   };
 
   static defaults = {
@@ -37,7 +41,26 @@ export class BrickEntity extends BaseEntityProxy {
     Obstacle: { groups: [1], radius: 40 },
     Collidable: { group: 1, radius: 40 },
     Bounce: { mass: 1000000, restitution: 0.9 },
+    Health: { max: 100, current: 100 },
   };
+
+  update() {    
+    if (this.Health.current <= 0) {
+      this.spawnTombstone();
+      this.remove();
+    }
+  }
+
+  spawnTombstone() {
+    const { x, y } = this.Position;
+    return ExplosionEntity.spawn(this.world)
+      .add({ Expiration, Tombstone })
+      .set({
+        Position: { x, y, r: 0 },
+        Expiration: { timeToLive: 1.0 },
+        SpriteOptions: { scaleX: 1.0, scaleY: 1.0, lineWidth: 2.0 },
+      });
+  }
 }
 
 export class BrickSprite extends BaseSprite {
