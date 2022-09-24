@@ -4,7 +4,7 @@ import { Collidable } from "../../../../lib/Collisions.js";
 import { Bounce } from "../../../../lib/Bouncer.js";
 import { Position, Velocity } from "../../../../lib/positionMotion.js";
 import { SpriteOptions, BaseSprite } from "../../../../lib/core/sprites.js";
-import { Obstacle } from "../../../../lib/Steering.js";
+import { Steering, Obstacle, MaintainSpeed } from "../../../../lib/Steering.js";
 
 export const Ball = defineComponent({
   radius: Types.f32,
@@ -17,7 +17,9 @@ export class BallEntity extends BaseEntityProxy {
     Velocity,
     SpriteOptions,
     Collidable,
+    Steering,
     Obstacle,
+    MaintainSpeed,
     Bounce,
   };
 
@@ -32,9 +34,10 @@ export class BallEntity extends BaseEntityProxy {
       color: 0xffffff,
     },
     Velocity: { x: 0, y: 0 },
-    Obstacle: { groups: [1], radius: 10, },
+    Obstacle: { groups: [1], radius: 10 },
+    MaintainSpeed: { maxSpeed: 300, acceleration: 50, braking: 50 },
     Collidable: { group: 1, radius: 10 },
-    Bounce: { mass: 100 },
+    Bounce: { mass: 100, restitution: 0.9 },
   };
 }
 

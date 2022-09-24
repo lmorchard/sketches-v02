@@ -36,7 +36,7 @@ export class BrickEntity extends BaseEntityProxy {
     Velocity: { x: 0, y: 0 },
     Obstacle: { groups: [1], radius: 40 },
     Collidable: { group: 1, radius: 40 },
-    Bounce: { mass: 1000000 },
+    Bounce: { mass: 1000000, restitution: 0.9 },
   };
 }
 

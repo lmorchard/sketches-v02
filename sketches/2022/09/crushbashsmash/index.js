@@ -45,7 +45,7 @@ import "../../../../index.css";
 /*
 TODO:
 
-- [ ] tweak collision system to support rectangles
+- [x] tweak collision system to support rectangles
 - [ ] add a health + heal + hurt system
 - [ ] bounce boundaries for side and top walls
 - [ ] expiration boundary for bottom wall
@@ -79,7 +79,7 @@ async function main() {
       collisionSystem(),
       steeringSystem(),
       bounceSystem({
-        separationFactor: 1.0,
+        separationFactor: 7.0,
       }),
       movementSystem(),
       tweakPaneUpdateSystem({ pane })
@@ -135,15 +135,21 @@ const tweakPaneUpdateSystem = ({ pane }) => {
   };
 };
 
-function spawnBall(world, startX = -400, maxX = 400, startY = 500) {
+function spawnBall(world, { ballSize = 10, startX = -400, maxX = 400, startY = 500 } = {}) {
   const x = rngIntRange(Math.random, startX, maxX);
   const y = startY;
 
   const ball = BallEntity.spawn(world, {
-    Ball: { radius: 10 },
     Position: { x, y },
     Velocity: { x: 0, y: rngIntRange(Math.random, -50, -200) },
-  });
+    Ball: { radius: ballSize },
+    MaintainSpeed: { maxSpeed: rngIntRange(Math.random, 100, 500) },
+    Collidable: {
+      radius: ballSize,
+      boxWidth: ballSize * 2,
+      boxHeight: ballSize * 2,
+    },
+});
 }
 
 function spawnBricks(
@@ -154,7 +160,7 @@ function spawnBricks(
   maxY = 0,
   brickWidth = 75,
   brickHeight = 25,
-  margin = 40
+  margin = 50
 ) {
   const xCount = Math.floor((maxX - startX) / (brickWidth + margin));
   const yCount = Math.floor((maxY - startY) / (brickHeight + margin));
@@ -167,7 +173,11 @@ function spawnBricks(
         Brick: { width: brickWidth, height: brickHeight },
         Position: { x: xPosition, y: yPosition },
         Obstacle: { radius: brickHeight },
-        Collidable: { radius: brickHeight },
+        Collidable: {
+          radius: Math.max(brickWidth, brickHeight) / 2,
+          boxWidth: brickWidth,
+          boxHeight: brickHeight,
+        },
       });
       bricks.push(brick);
     }
