@@ -6,7 +6,7 @@ import {
   autoSizedRenderer,
   gridRenderer,
 } from "../../../../lib/viewport/pixi.js";
-import { movementSystem } from "../../../../lib/positionMotion.js";
+import { movementSystem } from "../../../../lib/PositionMotion.js";
 import { spritesRenderer } from "../../../../lib/core/sprites.js";
 import { entityUpdater } from "../../../../lib/core/entities.js";
 import { spawnerSystem } from "../../../../lib/Spawner.js";

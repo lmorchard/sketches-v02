@@ -2,7 +2,7 @@ import { defineComponent, Types } from "bitecs";
 import { BaseEntityProxy } from "../../../../lib/core/entities.js";
 import { Collidable } from "../../../../lib/Collisions.js";
 import { Bounce } from "../../../../lib/Bouncer.js";
-import { Position, Velocity } from "../../../../lib/positionMotion.js";
+import { Position, Velocity } from "../../../../lib/PositionMotion.js";
 import { SpriteOptions, BaseSprite } from "../../../../lib/core/sprites.js";
 import { Steering, Obstacle, MaintainSpeed } from "../../../../lib/Steering.js";
 

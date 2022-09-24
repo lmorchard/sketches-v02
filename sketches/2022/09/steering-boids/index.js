@@ -7,7 +7,7 @@ import {
   Position,
   Velocity,
   movementSystem,
-} from "../../../../lib/positionMotion.js";
+} from "../../../../lib/PositionMotion.js";
 import { spritesRenderer } from "../../../../lib/core/sprites.js";
 import { hslToRgb } from "../../../../lib/utils/hslToRgb.js";
 import { BoidEntity, BoidSprite } from "../../../../lib/Boid.js";

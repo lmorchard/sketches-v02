@@ -8,7 +8,7 @@ import {
   Position,
   Velocity,
   movementSystem,
-} from "../../../../lib/positionMotion.js";
+} from "../../../../lib/PositionMotion.js";
 import { spritesRenderer } from "../../../../lib/core/sprites.js";
 import { SeekSpeed, seekSpeedSystem } from "../../../../lib/SeekSpeed.js";
 import { FlockingBoid, flockingBoidsSystem } from "./FlockingBoid.js";

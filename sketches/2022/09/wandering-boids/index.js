@@ -3,7 +3,7 @@ import * as World from "../../../../lib/core/world.js";
 import * as Stats from "../../../../lib/core/stats.js";
 import { Pane } from "tweakpane";
 import { autoSizedRenderer, gridRenderer } from "../../../../lib/viewport/pixi.js";
-import { movementSystem } from "../../../../lib/positionMotion.js";
+import { movementSystem } from "../../../../lib/PositionMotion.js";
 import { hslToRgb } from "../../../../lib/utils/hslToRgb";
 import {
   BoidEntity,

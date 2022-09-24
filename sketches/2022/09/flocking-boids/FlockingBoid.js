@@ -1,5 +1,5 @@
-import { Position, Velocity } from "../../../../lib/positionMotion.js";
 import { defineQuery, defineComponent, Types } from "bitecs";
+import { Position, Velocity } from "../../../../lib/PositionMotion.js";
 import { GenericComponentProxy, setEid } from "../../../../lib/core/entities.js";
 import { distanceSq } from "../../../../lib/utils/utils.js";
 import { positionIndexService } from "../../../../lib/PositionIndex.js";
