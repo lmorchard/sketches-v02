@@ -44,9 +44,9 @@ export class BallEntity extends BaseEntityProxy {
     Health: { max: 1000, current: 1000 },
   };
 
-  update(world) {
-    collisionService.using(world);
-    healthService.using(world);
+  update() {
+    collisionService.using(this.world);
+    healthService.using(this.world);
 
     const collisions = collisionService.get(this.eid);
     if (collisions) {

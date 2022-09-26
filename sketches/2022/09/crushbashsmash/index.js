@@ -35,11 +35,17 @@ import {
   bounceSystem,
   bounceDebugRenderer,
 } from "../../../../lib/Bouncer.js";
-import { Health, healthService, healthSystem, healthDebugRenderer } from "../../../../lib/Health.js";
+import {
+  Health,
+  healthService,
+  healthSystem,
+  healthDebugRenderer,
+} from "../../../../lib/Health.js";
 
 import { rngIntRange } from "../../../../lib/utils/utils.js";
 import { BrickEntity, BrickSprite } from "./Brick.js";
 import { BallEntity, BallSprite } from "./Ball.js";
+import { BoundaryEntity, BoundarySprite } from "./Boundary.js";
 
 import "../../../../index.css";
 
@@ -47,9 +53,10 @@ import "../../../../index.css";
 TODO:
 
 - [x] tweak collision system to support rectangles
-- [ ] add a health + heal + hurt system
+- [x] add a health + heal + hurt system
 - [ ] bounce boundaries for side and top walls
 - [ ] expiration boundary for bottom wall
+- [ ] add health-based changes to bricks - e.g. cracks
 */
 
 async function main() {
@@ -62,6 +69,7 @@ async function main() {
   const paneRoot = pane.addFolder({ title: document.title, expanded: true });
   world.addToPane(paneRoot);
 
+  spawnBoundaries(world);
   spawnBricks(world);
 
   world.run(
@@ -74,7 +82,7 @@ async function main() {
         maxPerFrame: 1,
         spawnDelay: 0,
       }),
-      entityUpdater([[BrickEntity], [BallEntity]]),
+      entityUpdater([[BrickEntity], [BallEntity], [BoundaryEntity]]),
       ballOutOfBoundsSystem(),
       explosionsUpdateSystem(),
       positionIndexSystem(),
@@ -89,6 +97,7 @@ async function main() {
       spritesRenderer([
         [BrickEntity, BrickSprite],
         [BallEntity, BallSprite],
+        [BoundaryEntity, BoundarySprite],
         [ExplosionEntity, ExplosionSprite],
       ]),
       gridRenderer(),
@@ -156,11 +165,29 @@ function spawnBall(
   });
 }
 
+function spawnBoundaries(world) {
+  BoundaryEntity.spawn(world, {
+    Position: { x: -600, y: 0 },
+    Boundary: { width: 40, height: 800 },
+    Collidable: { boxWidth: 40, boxHeight: 800, radius: 800 },
+  });
+  BoundaryEntity.spawn(world, {
+    Position: { x: 600, y: 0 },
+    Boundary: { width: 40, height: 800 },
+    Collidable: { boxWidth: 40, boxHeight: 800, radius: 800 },
+  });
+  BoundaryEntity.spawn(world, {
+    Position: { x: 0, y: -450 },
+    Boundary: { width: 1250, height: 40 },
+    Collidable: { boxWidth: 1250, boxHeight: 40, radius: 800 },
+  });
+}
+
 function spawnBricks(
   world,
   startX = -500,
-  maxX = 600,
-  startY = -400,
+  maxX = 700,
+  startY = -350,
   maxY = 0,
   brickWidth = 75,
   brickHeight = 25,
