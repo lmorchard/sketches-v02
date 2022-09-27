@@ -16,6 +16,11 @@ import {
   explosionsUpdateSystem,
 } from "../../../../lib/Explosion.js";
 import {
+  Expiration,
+  expirationSystem,
+  Tombstone,
+} from "../../../../lib/Expiration.js";
+import {
   steeringSystem,
   steeringBoidsDebugRenderer,
 } from "../../../../lib/Steering.js";
@@ -23,6 +28,7 @@ import { AsteroidEntity, AsteroidSprite } from "../../../../lib/Asteroid.js";
 import {
   positionIndexService,
   positionIndexSystem,
+  positionIndexDebugRenderer,
 } from "../../../../lib/PositionIndex.js";
 import {
   collisionService,
@@ -87,6 +93,7 @@ async function main() {
       explosionsUpdateSystem(),
       positionIndexSystem(),
       movementSystem(),
+      expirationSystem(),
       collisionSystem(),
       steeringSystem(),
       bounceSystem({ separationFactor: 7.0 }),
@@ -102,6 +109,7 @@ async function main() {
       ]),
       gridRenderer(),
       healthDebugRenderer(),
+      positionIndexDebugRenderer(),
       collisionDebugRenderer(),
       steeringBoidsDebugRenderer(),
       bounceDebugRenderer()

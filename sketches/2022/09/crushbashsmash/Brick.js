@@ -57,7 +57,7 @@ export class BrickEntity extends BaseEntityProxy {
       .add({ Expiration, Tombstone })
       .set({
         Position: { x, y, r: 0 },
-        Expiration: { timeToLive: 1.0 },
+        Expiration: { timeToLive: 0.5 },
         SpriteOptions: { scaleX: 1.0, scaleY: 1.0, lineWidth: 2.0 },
       });
   }

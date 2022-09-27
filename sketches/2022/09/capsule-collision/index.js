@@ -26,6 +26,7 @@ import {
 import {
   positionIndexService,
   positionIndexSystem,
+  positionIndexDebugRenderer,
 } from "../../../../lib/PositionIndex.js";
 import {
   collisionService,
@@ -52,14 +53,14 @@ async function main() {
   CapsuleDemoEntity.spawn(world, {
     Position: { x: -200, y: 0, r: Math.PI / 4 },
     Velocity: { r: Math.PI * 0.125 },
-    CollidableCapsule: { radius: 50, length: 500 },
+    Collidable: { radius: 50, length: 500 },
     SpriteOptions: { color: 0xff3333 },
   });
 
   CapsuleDemoEntity.spawn(world, {
     Position: { x: 200, y: 0, r: 0 },
     Velocity: { r: 0 - Math.PI * 0.125 },
-    CollidableCapsule: { radius: 50, length: 500 },
+    Collidable: { radius: 50, length: 500 },
     SpriteOptions: { color: 0x3333ff },
   });
 
@@ -68,7 +69,7 @@ async function main() {
       entityUpdater([[CapsuleDemoEntity]]),
       positionIndexSystem(),
       movementSystem(),
-      // collisionSystem(),
+      collisionSystem(),
       // bounceSystem({ separationFactor: 7.0 }),
       tweakPaneUpdateSystem({ pane })
     ),
@@ -76,11 +77,14 @@ async function main() {
       autoSizedRenderer(),
       spritesRenderer([[CapsuleDemoEntity, CapsuleDemoSprite]]),
       gridRenderer(),
-      capsuleDemoDebugRenderer()
-      // collisionDebugRenderer(),
-      // bounceDebugRenderer()
     ),
-    stats
+    stats,
+    pipe(
+      capsuleDemoDebugRenderer(),
+      positionIndexDebugRenderer(),
+      collisionDebugRenderer(),
+      // bounceDebugRenderer()
+    )
   );
 
   Object.assign(window, {
@@ -99,17 +103,12 @@ const tweakPaneUpdateSystem = ({ pane }) => {
   };
 };
 
-export const CollidableCapsule = defineComponent({
-  radius: Types.f32,
-  length: Types.f32,
-});
-
 export class CapsuleDemoEntity extends BaseEntityProxy {
   static components = {
     Position,
     Velocity,
     SpriteOptions,
-    CollidableCapsule,
+    Collidable,
   };
 
   static componentProxyClasses = {
@@ -136,7 +135,7 @@ export class CapsuleDemoSprite extends BaseSprite {
 
     const { g } = this;
     const {
-      CollidableCapsule: { radius, length },
+      Collidable: { radius, length },
     } = entity;
 
     const lineLength = length / 2 - radius;
@@ -168,7 +167,6 @@ export const capsuleDemoDebugRenderer = (options = {}) => {
 
   return (world) => {
     if (!world || !world.debug) return;
-
     const g = world.debugGraphics;
 
     seen.clear();
@@ -214,8 +212,8 @@ export const capsuleDemoDebugRenderer = (options = {}) => {
 
         g.lineStyle(4.0, 0xff33ff, 0.5);
         g.moveTo(rvA.x, rvA.y).lineTo(rvB.x, rvB.y);
-        g.drawCircle(rvA.x, rvA.y, capsuleEntity.CollidableCapsule.radius);
-        g.drawCircle(rvB.x, rvB.y, otherCapsuleEntity.CollidableCapsule.radius);
+        g.drawCircle(rvA.x, rvA.y, capsuleEntity.Collidable.radius);
+        g.drawCircle(rvB.x, rvB.y, otherCapsuleEntity.Collidable.radius);
       }
     }
 
@@ -226,7 +224,7 @@ export const capsuleDemoDebugRenderer = (options = {}) => {
     const {
       Position: position,
       Position: { r },
-      CollidableCapsule: { radius, length },
+      Collidable: { radius, length },
     } = entity;
 
     const hlength = length / 2 - radius;
@@ -246,8 +244,8 @@ const findClosestPointsBetweenLines = (() => {
     const d1 = v.copy(b1).subtract(a0).lengthSquared();
     const d2 = v.copy(b0).subtract(a1).lengthSquared();
     const d3 = v.copy(b1).subtract(a1).lengthSquared();
-    
-    const bestA = (d2 < d0 || d2 < d1 || d3 < d0 || d3 < d1) ? a1 : a0;
+
+    const bestA = d2 < d0 || d2 < d1 || d3 < d0 || d3 < d1 ? a1 : a0;
 
     findClosestPointOnLineSegment(bestA, b0, b1, rvB);
     findClosestPointOnLineSegment(rvB, a0, a1, rvA);

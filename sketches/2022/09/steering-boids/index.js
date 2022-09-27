@@ -40,6 +40,7 @@ import { AsteroidEntity, AsteroidSprite } from "../../../../lib/Asteroid.js";
 import {
   positionIndexService,
   positionIndexSystem,
+  positionIndexDebugRenderer,
 } from "../../../../lib/PositionIndex.js";
 import {
   collisionService,
@@ -136,11 +137,14 @@ async function main() {
         [ExplosionEntity, ExplosionSprite],
         [AsteroidEntity, AsteroidSprite],
       ]),
+    ),
+    stats,
+    pipe(
       collisionDebugRenderer(),
+      positionIndexDebugRenderer(),
       steeringBoidsDebugRenderer(),
       bounceDebugRenderer()
-    ),
-    stats
+    )
   );
 
   Object.assign(window, {
