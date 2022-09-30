@@ -53,7 +53,7 @@ async function main() {
 
   const replayOptions = {
     historyPeriod: 0,
-    maxHistory: 600,
+    maxHistory: 60 * 10,
     updateDelta: 1000 / 60,
   };
 
