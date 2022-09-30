@@ -34,6 +34,11 @@ import {
   collisionDebugRenderer,
   Collidable,
 } from "../../../../lib/Collisions.js";
+import {
+  replayService,
+  replaySystem,
+  replayTweakPane,
+} from "../../../../lib/Replay.js";
 import { Position, Velocity } from "../../../../lib/PositionMotion.js";
 import { Point2D, Vector2D } from "../../../../lib/utils/vector.js";
 import { Vector2DComponentProxy } from "../../../../lib/utils/VectorComponentProxy.js";
@@ -46,9 +51,16 @@ async function main() {
 
   world.debug = true;
 
+  const replayOptions = {
+    historyPeriod: 0,
+    maxHistory: 600,
+    updateDelta: 1000 / 60,
+  };
+
   const pane = new Pane();
   const paneRoot = pane.addFolder({ title: document.title, expanded: true });
   world.addToPane(paneRoot);
+  replayTweakPane(paneRoot, world, replayOptions);
 
   CapsuleDemoEntity.spawn(world, {
     Position: { x: -150, y: 0, r: Math.PI / 4 },
@@ -71,18 +83,19 @@ async function main() {
       movementSystem(),
       collisionSystem(),
       // bounceSystem({ separationFactor: 7.0 }),
-      tweakPaneUpdateSystem({ pane })
+      tweakPaneUpdateSystem({ pane }),
+      replaySystem(replayOptions)
     ),
     pipe(
       autoSizedRenderer(),
       spritesRenderer([[CapsuleDemoEntity, CapsuleDemoSprite]]),
-      gridRenderer(),
+      gridRenderer()
     ),
     stats,
     pipe(
       capsuleDemoDebugRenderer(),
       positionIndexDebugRenderer(),
-      collisionDebugRenderer(),
+      collisionDebugRenderer()
       // bounceDebugRenderer()
     )
   );
@@ -177,7 +190,6 @@ export const capsuleDemoDebugRenderer = (options = {}) => {
         const key = seenKey(eid, otherEid);
         if (seen.has(key)) continue;
         seen.add(key);
-
       }
     }
 
