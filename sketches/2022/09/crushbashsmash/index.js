@@ -96,7 +96,7 @@ async function main() {
       expirationSystem(),
       collisionSystem(),
       steeringSystem(),
-      bounceSystem({ separationFactor: 7.0 }),
+      bounceSystem({ separationFactor: 0.2 }),
       tweakPaneUpdateSystem({ pane })
     ),
     pipe(
@@ -153,6 +153,24 @@ const tweakPaneUpdateSystem = ({ pane }) => {
   };
 };
 
+function spawnBoundaries(world) {
+  BoundaryEntity.spawn(world, {
+    Position: { x: -600, y: 0 },
+    Boundary: { width: 40, height: 800 },
+    Collidable: { length: 800, radius: 20 },
+  });
+  BoundaryEntity.spawn(world, {
+    Position: { x: 600, y: 0 },
+    Boundary: { width: 40, height: 800 },
+    Collidable: { length: 800, radius: 20 },
+  });
+  BoundaryEntity.spawn(world, {
+    Position: { x: 0, y: -450, r: Math.PI / 2 },
+    Boundary: { width: 40, height: 1250 },
+    Collidable: { length: 1250, radius: 20 },
+  });
+}
+
 function spawnBall(
   world,
   { ballSize = 10, startX = -400, maxX = 400, startY = 500 } = {}
@@ -165,29 +183,7 @@ function spawnBall(
     Velocity: { x: 0, y: rngIntRange(Math.random, -50, -200) },
     Ball: { radius: ballSize },
     MaintainSpeed: { maxSpeed: rngIntRange(Math.random, 100, 500) },
-    Collidable: {
-      radius: ballSize,
-      boxWidth: ballSize * 2,
-      boxHeight: ballSize * 2,
-    },
-  });
-}
-
-function spawnBoundaries(world) {
-  BoundaryEntity.spawn(world, {
-    Position: { x: -600, y: 0 },
-    Boundary: { width: 40, height: 800 },
-    Collidable: { boxWidth: 40, boxHeight: 800, radius: 800 },
-  });
-  BoundaryEntity.spawn(world, {
-    Position: { x: 600, y: 0 },
-    Boundary: { width: 40, height: 800 },
-    Collidable: { boxWidth: 40, boxHeight: 800, radius: 800 },
-  });
-  BoundaryEntity.spawn(world, {
-    Position: { x: 0, y: -450 },
-    Boundary: { width: 1250, height: 40 },
-    Collidable: { boxWidth: 1250, boxHeight: 40, radius: 800 },
+    Collidable: { length: ballSize * 2, radius: ballSize },
   });
 }
 
@@ -212,11 +208,7 @@ function spawnBricks(
         Brick: { width: brickWidth, height: brickHeight },
         Position: { x: xPosition, y: yPosition },
         Obstacle: { radius: brickHeight },
-        Collidable: {
-          radius: Math.max(brickWidth, brickHeight) / 2,
-          boxWidth: brickWidth,
-          boxHeight: brickHeight,
-        },
+        Collidable: { length: brickHeight, radius: brickWidth / 2 },
       });
       bricks.push(brick);
     }
