@@ -126,7 +126,7 @@ export class CapsuleDemoEntity extends BaseEntityProxy {
     Velocity,
     SpriteOptions,
     Collidable,
-    Bounce,
+    //Bounce,
   };
 
   static componentProxyClasses = {
