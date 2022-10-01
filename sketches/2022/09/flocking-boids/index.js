@@ -29,6 +29,7 @@ import {
   explosionsUpdateSystem,
 } from "../../../../lib/Explosion.js";
 import { positionIndexSystem } from "../../../../lib/PositionIndex.js";
+import { replaySystem, replayTweakPane } from "../../../../lib/Replay.js";
 
 import "../../../../index.css";
 
@@ -41,6 +42,13 @@ async function main() {
   const pane = new Pane();
   const rootFolder = pane.addFolder({ title: document.title, expanded: true });
   world.addToPane(rootFolder);
+  
+  const replayOptions = {
+    historyPeriod: 0,
+    maxHistory: 60 * 10,
+    updateDelta: 1000 / 60,
+  };
+  replayTweakPane(rootFolder, world, replayOptions);
 
   const spawnerOptions = {
     entityQuery: BoidEntity.query,
@@ -77,6 +85,7 @@ async function main() {
         if (hasComponent(world, Tombstone, eid)) return;
         spawnTombstoneForBoid(world, eid);
       }),
+      replaySystem(replayOptions),
       tweakPaneUpdateSystem(pane, rootFolder)
     ),
     pipe(

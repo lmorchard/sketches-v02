@@ -13,6 +13,7 @@ import {
 import { headingAndSpeedSystem } from "../../../../lib/HeadingAndSpeed.js";
 import { Wanderer, wandererSystem } from "../../../../lib/Wanderer.js";
 import { HeadingAndSpeed } from "../../../../lib/HeadingAndSpeed.js";
+import { replaySystem, replayTweakPane } from "../../../../lib/Replay.js";
 
 import "../../../../index.css";
 
@@ -25,6 +26,13 @@ async function main() {
   const pane = new Pane();
   const paneRoot = pane.addFolder({ title: document.title, expanded: true });
   world.addToPane(paneRoot);
+  
+  const replayOptions = {
+    historyPeriod: 0,
+    maxHistory: 60 * 10,
+    updateDelta: 1000 / 60,
+  };
+  replayTweakPane(paneRoot, world, replayOptions);
 
   for (let idx = 0; idx < NUM_WANDERERS; idx++) {
     const boid = BoidEntity.spawn(world)
@@ -59,6 +67,7 @@ async function main() {
       wandererSystem(),
       headingAndSpeedSystem(),
       movementSystem(),
+      replaySystem(replayOptions),
       tweakPaneUpdateSystem({ pane /* wanderingBoid */ })
     ),
     pipe(autoSizedRenderer(), boidsRenderer(), gridRenderer()),

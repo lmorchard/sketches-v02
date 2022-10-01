@@ -39,10 +39,7 @@ import {
   bounceDebugRenderer,
   Bounce,
 } from "../../../../lib/Bouncer.js";
-import {
-  replaySystem,
-  replayTweakPane,
-} from "../../../../lib/Replay.js";
+import { replaySystem, replayTweakPane } from "../../../../lib/Replay.js";
 import { Position, Velocity } from "../../../../lib/PositionMotion.js";
 import { Point2D, Vector2D } from "../../../../lib/utils/vector.js";
 import { Vector2DComponentProxy } from "../../../../lib/utils/VectorComponentProxy.js";
@@ -55,25 +52,25 @@ async function main() {
 
   world.debug = true;
 
+  const pane = new Pane();
+  const paneRoot = pane.addFolder({ title: document.title, expanded: true });
+  world.addToPane(paneRoot);
+
   const replayOptions = {
     historyPeriod: 0,
     maxHistory: 60 * 10,
     updateDelta: 1000 / 60,
   };
-
-  const pane = new Pane();
-  const paneRoot = pane.addFolder({ title: document.title, expanded: true });
-  world.addToPane(paneRoot);
   replayTweakPane(paneRoot, world, replayOptions);
 
-  CapsuleDemoEntity.spawn(world, {
+  const capsule1 = CapsuleDemoEntity.spawn(world, {
     Position: { x: -150, y: 0, r: Math.PI / 4 },
     Velocity: { r: Math.PI * 0.125 },
     Collidable: { radius: 50, length: 500 },
     SpriteOptions: { color: 0xff3333 },
   });
 
-  CapsuleDemoEntity.spawn(world, {
+  const capsule2 = CapsuleDemoEntity.spawn(world, {
     Position: { x: 150, y: 0, r: 0 },
     Velocity: { r: 0 - Math.PI * 0.125 },
     Collidable: { radius: 50, length: 500 },
@@ -88,7 +85,7 @@ async function main() {
       collisionSystem(),
       bounceSystem({ separationFactor: 7.0 }),
       replaySystem(replayOptions),
-      tweakPaneUpdateSystem({ pane }),
+      tweakPaneUpdateSystem({ pane })
     ),
     pipe(
       autoSizedRenderer(),

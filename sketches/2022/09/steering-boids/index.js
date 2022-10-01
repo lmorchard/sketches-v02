@@ -54,6 +54,7 @@ import {
   bounceDebugRenderer,
 } from "../../../../lib/Bouncer.js";
 import { GoalPosition, goalPositionSystem } from "../../../../lib/GoalPosition.js";
+import { replaySystem, replayTweakPane } from "../../../../lib/Replay.js";
 
 import "../../../../index.css";
 
@@ -76,6 +77,13 @@ async function main() {
   const pane = new Pane();
   const paneRoot = pane.addFolder({ title: document.title, expanded: true });
   world.addToPane(paneRoot);
+
+  const replayOptions = {
+    historyPeriod: 0,
+    maxHistory: 60 * 10,
+    updateDelta: 1000 / 60,
+  };
+  replayTweakPane(paneRoot, world, replayOptions);
 
   const spawnerOptions = {
     entityQuery: defineQuery([Expiration, Steering]),
@@ -127,6 +135,7 @@ async function main() {
       movementSystem(),
       expirationSystem(onExpiration),
       goalPositionSystem(onGoalPositionMet),
+      replaySystem(replayOptions),
       tweakPaneUpdateSystem({ pane })
     ),
     pipe(
