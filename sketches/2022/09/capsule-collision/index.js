@@ -35,7 +35,11 @@ import {
   Collidable,
 } from "../../../../lib/Collisions.js";
 import {
-  replayService,
+  bounceSystem,
+  bounceDebugRenderer,
+  Bounce,
+} from "../../../../lib/Bouncer.js";
+import {
   replaySystem,
   replayTweakPane,
 } from "../../../../lib/Replay.js";
@@ -82,9 +86,9 @@ async function main() {
       positionIndexSystem(),
       movementSystem(),
       collisionSystem(),
-      // bounceSystem({ separationFactor: 7.0 }),
+      bounceSystem({ separationFactor: 7.0 }),
+      replaySystem(replayOptions),
       tweakPaneUpdateSystem({ pane }),
-      replaySystem(replayOptions)
     ),
     pipe(
       autoSizedRenderer(),
@@ -95,8 +99,8 @@ async function main() {
     pipe(
       capsuleDemoDebugRenderer(),
       positionIndexDebugRenderer(),
-      collisionDebugRenderer()
-      // bounceDebugRenderer()
+      collisionDebugRenderer(),
+      bounceDebugRenderer()
     )
   );
 
@@ -122,6 +126,7 @@ export class CapsuleDemoEntity extends BaseEntityProxy {
     Velocity,
     SpriteOptions,
     Collidable,
+    Bounce,
   };
 
   static componentProxyClasses = {
