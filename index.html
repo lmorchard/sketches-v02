@@ -5,16 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>lmorchard sketches-v02</title>
   </head>
-  <body>
-    <ul>
+  <body class="site-index">
+    <header>
+      <h1>lmorchard sketches vol 02</h1>
+    </header>
+    <ul class="sketches">
       <% for (const {filename, metadata: { href, title, image, description, date }} of sketches) { %>
         <li>
-          <p>
-            <%= date.toISOString() %>:
-            <a href="<%= href %>/index.html"><%= title %></a>  
-          </p>
-          <p><%= description %></p>
-          <img src="<%= image %>" width="200" />
+          <a class="image" href="<%= href %>/index.html"><img src="<%= image %>" /></a>
+          <section class="title-description">
+            <a class="title" href="<%= href %>/index.html"><%= title %></a>
+            <p class="description"><%= description %></p>
+          </section>
+          <time datetime="<%= date.toISOString() %>"><%= date.toLocaleDateString()  %></time>
+          <% /* <a class="source" href="https://github.com/lmorchard/sketches-v01/tree/main/src/sketches/2021/vector-avatars/">Source</a> */ %>
         </li>
       <% } %>
     </ul>
