@@ -29,6 +29,7 @@ import {
   positionIndexService,
   positionIndexSystem,
   positionIndexDebugRenderer,
+  AreaCapsule,
 } from "../../../../lib/PositionIndex.js";
 import {
   collisionService,
@@ -157,17 +158,17 @@ function spawnBoundaries(world) {
   BoundaryEntity.spawn(world, {
     Position: { x: -600, y: 0 },
     Boundary: { width: 40, height: 800 },
-    Collidable: { length: 800, radius: 20 },
+    AreaCapsule: { radius: 40, length: 800 },
   });
   BoundaryEntity.spawn(world, {
     Position: { x: 600, y: 0 },
     Boundary: { width: 40, height: 800 },
-    Collidable: { length: 800, radius: 20 },
+    AreaCapsule: { radius: 40, length: 800 },
   });
   BoundaryEntity.spawn(world, {
     Position: { x: 0, y: -450, r: Math.PI / 2 },
     Boundary: { width: 40, height: 1250 },
-    Collidable: { length: 1250, radius: 20 },
+    AreaCapsule: { radius: 40, length: 1250 },
   });
 }
 
@@ -183,7 +184,7 @@ function spawnBall(
     Velocity: { x: 0, y: rngIntRange(Math.random, -50, -200) },
     Ball: { radius: ballSize },
     MaintainSpeed: { maxSpeed: rngIntRange(Math.random, 100, 500) },
-    Collidable: { length: ballSize * 2, radius: ballSize },
+    AreaCapsule: { length: 2, radius: ballSize },
   });
 }
 
@@ -208,7 +209,8 @@ function spawnBricks(
         Brick: { width: brickWidth, height: brickHeight },
         Position: { x: xPosition, y: yPosition },
         Obstacle: { radius: brickHeight },
-        Collidable: { length: brickHeight, radius: brickWidth / 2 },
+        AreaCapsule: { length: brickHeight, radius: brickWidth / 2 },
+        Health: { max: 10000, current: 10000 },
       });
       bricks.push(brick);
     }

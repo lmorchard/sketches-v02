@@ -3,6 +3,7 @@ import { BaseEntityProxy } from "../../../../lib/core/entities.js";
 import { Collidable } from "../../../../lib/Collisions.js";
 import { Bounce } from "../../../../lib/Bouncer.js";
 import { Position, Velocity } from "../../../../lib/PositionMotion.js";
+import { AreaCapsule } from "../../../../lib/PositionIndex.js";
 import { SpriteOptions, BaseSprite } from "../../../../lib/core/sprites.js";
 import { Obstacle } from "../../../../lib/Steering.js";
 import { Health } from "../../../../lib/Health.js";
@@ -21,6 +22,7 @@ export class BoundaryEntity extends BaseEntityProxy {
     Velocity,
     SpriteOptions,
     Collidable,
+    AreaCapsule,
     Obstacle,
     Bounce,
   };
@@ -38,7 +40,8 @@ export class BoundaryEntity extends BaseEntityProxy {
     },
     Velocity: { x: 0, y: 0 },
     Obstacle: { groups: [1], radius: 40 },
-    Collidable: { group: 1, radius: 40 },
+    Collidable: { group: 1 },
+    AreaCapsule: { radius: 40, length: 400 },
     Bounce: { mass: 1000000, restitution: 0.9, immobile: 1 },
   };
 }

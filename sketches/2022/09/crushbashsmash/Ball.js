@@ -3,6 +3,7 @@ import { BaseEntityProxy } from "../../../../lib/core/entities.js";
 import { Collidable, collisionService } from "../../../../lib/Collisions.js";
 import { Bounce } from "../../../../lib/Bouncer.js";
 import { Position, Velocity } from "../../../../lib/PositionMotion.js";
+import { AreaCapsule } from "../../../../lib/PositionIndex.js";
 import { SpriteOptions, BaseSprite } from "../../../../lib/core/sprites.js";
 import { Steering, Obstacle, MaintainSpeed } from "../../../../lib/Steering.js";
 import { Health, healthService } from "../../../../lib/Health.js";
@@ -19,6 +20,7 @@ export class BallEntity extends BaseEntityProxy {
     Velocity,
     SpriteOptions,
     Collidable,
+    AreaCapsule,
     Steering,
     Obstacle,
     MaintainSpeed,
@@ -39,7 +41,8 @@ export class BallEntity extends BaseEntityProxy {
     Velocity: { x: 0, y: 0 },
     Obstacle: { groups: [1], radius: 10 },
     MaintainSpeed: { maxSpeed: 300, acceleration: 50, braking: 50 },
-    Collidable: { group: 1, radius: 10 },
+    Collidable: { group: 1 },
+    AreaCapsule: { radius: 10, length: 2 },
     Bounce: { mass: 100, restitution: 0.9 },
     Health: { max: 1000, current: 1000 },
   };
