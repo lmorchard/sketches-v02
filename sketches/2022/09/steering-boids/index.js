@@ -41,6 +41,7 @@ import {
   positionIndexService,
   positionIndexSystem,
   positionIndexDebugRenderer,
+  AreaCircle,
 } from "../../../../lib/PositionIndex.js";
 import {
   collisionService,
@@ -72,7 +73,7 @@ async function main() {
   const world = World.init();
   const stats = Stats.init();
 
-  // world.debug = true;
+  world.debug = true;
 
   const pane = new Pane();
   const paneRoot = pane.addFolder({ title: document.title, expanded: true });
@@ -213,6 +214,7 @@ const spawnBoid = (world) => {
       AvoidBorder,
       Obstacle,
       Collidable,
+      AreaCircle,
       Bounce,
       GoalPosition,
     })
@@ -241,7 +243,8 @@ const spawnBoid = (world) => {
       SpriteOptions: { scaleX: 0.125, scaleY: 0.125, lineWidth: 15.0, color },
       Expiration: { timeToLive: 5 + Math.random() * 20.0 },
       Obstacle: { groups: [1], radius: 10 },
-      Collidable: { group: 1, radius: 10 },
+      Collidable: { group: 1 },
+      AreaCircle: { radius: 10 },
       Bounce: { mass: 10 },
     });
 };
@@ -259,20 +262,21 @@ const spawnTombstoneForBoid = (world, eid) => {
 
 const spawnAsteroid = (world, x, y) => {
   return AsteroidEntity.spawn(world)
-    .add({ Obstacle, Collidable, Bounce })
+    .add({ Obstacle, Collidable, AreaCircle, Bounce })
     .set({
       Position: { x, y },
       Velocity: { r: Math.PI * (-0.5 + 1.0 * Math.random()) },
       SpriteOptions: { scaleX: 0.5, scaleY: 0.5, lineWidth: 3.0 },
       Obstacle: { groups: [1], radius: 25 },
-      Collidable: { group: 1, radius: 25 },
+      Collidable: { group: 1 },
+      AreaCircle: { radius: 25 },
       Bounce: { mass: 1000 },
     });
 };
 
 const spawnTarget = (world, x, y) => {
   return BoidEntity.spawn(world)
-    .add({ Obstacle, Collidable, Bounce })
+    .add({ Obstacle, Collidable, AreaCircle, Bounce })
     .set({
       Position: { x: 0, y: 0, r: -Math.PI / 2 },
       Velocity: { x: 0, y: 0 },
@@ -283,7 +287,8 @@ const spawnTarget = (world, x, y) => {
         color: 0x33ff33,
       },
       Obstacle: { groups: [1], radius: 25 },
-      Collidable: { group: 1, radius: 25 },
+      Collidable: { group: 1, },
+      AreaCircle: { radius: 25 },
       Bounce: { mass: 100000 },
     });
 };
