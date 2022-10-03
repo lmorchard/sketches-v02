@@ -11,3 +11,4 @@ For years, I've tinkered with game development on the web. But, I haven't finish
   - could probably wrap up some common init between sketches like adding tweak pane and replay system, etc  
 - [ ] In replay, add a way to export / import spans of history to reproduce situations
 - [ ] Replay is buggy because deserializing world states does not delete entities
+- [ ] Hook deploy.sh up to github action on push

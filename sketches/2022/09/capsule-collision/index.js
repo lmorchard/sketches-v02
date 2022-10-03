@@ -28,6 +28,7 @@ import {
   positionIndexService,
   positionIndexSystem,
   positionIndexDebugRenderer,
+  AreaCapsule,
 } from "../../../../lib/PositionIndex.js";
 import {
   collisionService,
@@ -67,14 +68,14 @@ async function main() {
   const capsule1 = CapsuleDemoEntity.spawn(world, {
     Position: { x: -150, y: 0, r: Math.PI / 4 },
     Velocity: { r: Math.PI * 0.125 },
-    Collidable: { radius: 50, length: 500 },
+    AreaCapsule: { radius: 50, length: 500 },
     SpriteOptions: { color: 0xff3333 },
   });
 
   const capsule2 = CapsuleDemoEntity.spawn(world, {
     Position: { x: 150, y: 0, r: 0 },
     Velocity: { r: 0 - Math.PI * 0.125 },
-    Collidable: { radius: 50, length: 500 },
+    AreaCapsule: { radius: 50, length: 500 },
     SpriteOptions: { color: 0x3333ff },
   });
 
@@ -122,6 +123,7 @@ export class CapsuleDemoEntity extends BaseEntityProxy {
   static components = {
     Position,
     Velocity,
+    AreaCapsule,
     SpriteOptions,
     Collidable,
     //Bounce,
@@ -151,7 +153,7 @@ export class CapsuleDemoSprite extends BaseSprite {
 
     const { g } = this;
     const {
-      Collidable: { radius, length },
+      AreaCapsule: { radius, length },
     } = entity;
 
     const lineLength = length / 2 - radius;
