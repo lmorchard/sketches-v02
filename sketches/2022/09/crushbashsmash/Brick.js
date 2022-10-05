@@ -75,13 +75,13 @@ export class BrickSprite extends BaseSprite {
       Brick: { width, height },
     } = entity;
 
-    g.moveTo(0, 0 - height / 4);
-    g.lineTo(0, height / 4);
+    g.moveTo(0 - height / 4, 0);
+    g.lineTo(height / 4, 0);
 
-    g.moveTo(0 - width / 4, 0);
-    g.lineTo(width / 4, 0);
+    g.moveTo(0, 0 - width / 4);
+    g.lineTo(0, width / 4);
 
-    g.drawRoundedRect(0 - width / 2, 0 - height / 2, width, height, 8);
+    g.drawRoundedRect(0 - height / 2, 0 - width / 2, height, width, 8);
 
   }
 }

@@ -48,7 +48,7 @@ import {
   healthSystem,
   healthDebugRenderer,
 } from "../../../../lib/Health.js";
-
+import { replaySystem, replayTweakPane } from "../../../../lib/Replay.js";
 import { rngIntRange } from "../../../../lib/utils/utils.js";
 import { BrickEntity, BrickSprite } from "./Brick.js";
 import { BallEntity, BallSprite } from "./Ball.js";
@@ -76,6 +76,13 @@ async function main() {
   const paneRoot = pane.addFolder({ title: document.title, expanded: true });
   world.addToPane(paneRoot);
 
+  const replayOptions = {
+    historyPeriod: 0,
+    maxHistory: 60 * 10,
+    updateDelta: 1000 / 60,
+  };
+  replayTweakPane(paneRoot, world, replayOptions);
+
   spawnBoundaries(world);
   spawnBricks(world);
 
@@ -98,6 +105,7 @@ async function main() {
       collisionSystem(),
       steeringSystem(),
       bounceSystem({ separationFactor: 0.2 }),
+      replaySystem(replayOptions),
       tweakPaneUpdateSystem({ pane })
     ),
     pipe(
@@ -181,7 +189,7 @@ function spawnBall(
 
   const ball = BallEntity.spawn(world, {
     Position: { x, y },
-    Velocity: { x: 0, y: rngIntRange(Math.random, -50, -200) },
+    Velocity: { x: -10.0 + Math.random() * 20, y: rngIntRange(Math.random, -50, -200) },
     Ball: { radius: ballSize },
     MaintainSpeed: { maxSpeed: rngIntRange(Math.random, 100, 500) },
     AreaCapsule: { length: 2, radius: ballSize },
@@ -207,10 +215,10 @@ function spawnBricks(
       const yPosition = startY + y * (brickHeight + margin);
       const brick = BrickEntity.spawn(world, {
         Brick: { width: brickWidth, height: brickHeight },
-        Position: { x: xPosition, y: yPosition },
+        Position: { x: xPosition, y: yPosition, r: Math.PI / 2 },
         Obstacle: { radius: brickHeight },
-        AreaCapsule: { length: brickHeight, radius: brickWidth / 2 },
-        Health: { max: 10000, current: 10000 },
+        AreaCapsule: { length: brickWidth, radius: brickHeight / 2 },
+        Health: { max: 100, current: 100 },
       });
       bricks.push(brick);
     }

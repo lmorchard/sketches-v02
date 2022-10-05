@@ -65,7 +65,6 @@ TODO:
 - [ ] add entity evade steering
 */
 
-const NUM_WANDERERS = 0; // 10;
 const NUM_ASTEROIDS_PER_RING = 10;
 const MAX_BOIDS = 50;
 
@@ -105,11 +104,6 @@ async function main() {
     spawnTombstoneForBoid(world, eid);
     removeEntity(world, eid);
   };
-
-  const wanderers = [];
-  for (let idx = 0; idx < NUM_WANDERERS; idx++) {
-    wanderers.push(spawnWanderer(world));
-  }
 
   const asteroids = [];
   [/*425, */ 375, 275, 175].forEach((spawnDistance) => {
@@ -171,29 +165,6 @@ const tweakPaneUpdateSystem = ({ pane }) => {
     pane.refresh();
     return world;
   };
-};
-
-const spawnWanderer = (world) => {
-  return BoidEntity.spawn(world)
-    .add({ HeadingAndSpeed, Wanderer })
-    .set({
-      Position: {
-        x: -200 + Math.random() * 400,
-        y: -200 + Math.random() * 400,
-        r: 0,
-      },
-      SpriteOptions: {
-        scaleX: 0.25,
-        scaleY: 0.25,
-        lineWidth: 4.0,
-        color: hslToRgb(Math.random(), 1.0, 0.5),
-      },
-      HeadingAndSpeed: {
-        heading: Math.PI * 2 * Math.random(),
-        speed: 50 + 200 * Math.random(),
-      },
-      Wanderer: { originX: 0, originY: 0, maxDistance: 500 },
-    });
 };
 
 const spawnBoid = (world) => {
