@@ -66,15 +66,15 @@ async function main() {
   replayTweakPane(paneRoot, world, replayOptions);
 
   const capsule1 = CapsuleDemoEntity.spawn(world, {
-    Position: { x: -150, y: 0, r: Math.PI / 4 },
-    Velocity: { r: Math.PI * 0.125 },
+    Position: { x: -175, y: 0, r: Math.PI / 4 },
+    Velocity: { x: 10, r: Math.PI * 0.125 },
     AreaCapsule: { radius: 50, length: 500 },
     SpriteOptions: { color: 0xff3333 },
   });
 
   const capsule2 = CapsuleDemoEntity.spawn(world, {
-    Position: { x: 150, y: 0, r: 0 },
-    Velocity: { r: 0 - Math.PI * 0.125 },
+    Position: { x: 175, y: 0, r: 0 },
+    Velocity: { x: -10, r: 0 - Math.PI * 0.125 },
     AreaCapsule: { radius: 50, length: 500 },
     SpriteOptions: { color: 0x3333ff },
   });
@@ -85,7 +85,7 @@ async function main() {
       positionIndexSystem(),
       movementSystem(),
       collisionSystem(),
-      bounceSystem({ separationFactor: 7.0 }),
+      bounceSystem({ separationFactor: 0.1 }),
       replaySystem(replayOptions),
       tweakPaneUpdateSystem({ pane })
     ),
@@ -126,7 +126,7 @@ export class CapsuleDemoEntity extends BaseEntityProxy {
     AreaCapsule,
     SpriteOptions,
     Collidable,
-    //Bounce,
+    Bounce,
   };
 
   static componentProxyClasses = {
@@ -142,6 +142,7 @@ export class CapsuleDemoEntity extends BaseEntityProxy {
       color: 0xffffff,
     },
     Velocity: { x: 0, y: 0 },
+    Bounce: { mass: 10.0 },
   };
 
   update() {}
